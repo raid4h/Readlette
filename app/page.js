@@ -25,31 +25,42 @@ const EMPTY_FILTERS = {
 export default function Home() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null); // NEW: surface fetch failures instead of hanging silently
   const [filters, setFilters] = useState(EMPTY_FILTERS);
 
   const loadBooks = useCallback(async () => {
-    const res = await fetch('/api/books');
-    const data = await res.json();
-    setBooks(data.books || []);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      // cache: 'no-store' just makes sure the browser itself never serves a
+      // stale copy of this response - belt-and-suspenders alongside the
+      // dynamic = 'force-dynamic' export that the route handler needs.
+      const res = await fetch('/api/books', { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`/api/books returned ${res.status}`);
+      }
+      const data = await res.json();
+      setBooks(data.books || []);
+    } catch (err) {
+      // Previously this just threw silently and the UI never updated -
+      // which is exactly what "nothing happens after upload" looks like.
+      console.error('Failed to load books:', err);
+      setLoadError('The Fairy Court could not reach the Royal Library. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     loadBooks();
   }, [loadBooks]);
 
-  // Recomputed only when the book list or filter selections change - not on
-  // every render - since filtering 1000+ books is cheap but no need to
-  // repeat it unnecessarily.
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
-      // Genre: book must match at least one selected genre (if any selected)
       if (filters.genres.size > 0) {
         const bookGenres = book.genres || [];
         if (!bookGenres.some((g) => filters.genres.has(g))) return false;
       }
 
-      // Era: matches a selected decade OR the typed exact year (if either is set)
       const yearFilterActive = filters.decades.size > 0 || filters.customYear !== '';
       if (yearFilterActive) {
         const decade = book.pub_year ? `${Math.floor(book.pub_year / 10) * 10}s` : null;
@@ -59,7 +70,6 @@ export default function Home() {
         if (!matchesDecade && !matchesYear) return false;
       }
 
-      // Author gender: book must match one of the selected options (if any selected)
       if (filters.genders.size > 0) {
         if (!filters.genders.has(book.author_gender)) return false;
       }
@@ -80,6 +90,12 @@ export default function Home() {
 
       {loading ? (
         <p className="empty-state">✨ Summoning the Fairy Council...</p>
+      ) : loadError ? (
+        // NEW: visible error + retry instead of a silent, indefinite hang
+        <div className="empty-state">
+          <p>{loadError}</p>
+          <button onClick={loadBooks}>Try again</button>
+        </div>
       ) : books.length === 0 ? (
         <UploadCsv onImported={loadBooks} />
       ) : (

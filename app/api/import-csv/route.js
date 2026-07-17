@@ -33,9 +33,6 @@ export async function POST(request) {
 
   let imported = 0;
 
-  // We insert one at a time in a loop rather than one giant bulk statement -
-  // slightly slower, but much simpler to read and debug, and 1251 rows still
-  // only takes a few seconds.
   for (const book of books) {
     await sql`
       INSERT INTO books (goodreads_id, title, author, isbn, isbn13, pub_year, date_added, shelf)
@@ -46,7 +43,14 @@ export async function POST(request) {
         isbn = EXCLUDED.isbn,
         isbn13 = EXCLUDED.isbn13,
         pub_year = EXCLUDED.pub_year,
-        date_added = EXCLUDED.date_added
+        date_added = EXCLUDED.date_added,
+        shelf = EXCLUDED.shelf
+        -- shelf was missing here before. Without it, re-running an import
+        -- (or a daily sync) on a book that already exists in the table would
+        -- silently leave its shelf value untouched forever - which is why
+        -- every row ended up with a shelf value that never matched
+        -- WHERE shelf = 'to-read' in /api/books, even though COUNT(*)
+        -- correctly showed all 1254 rows existed.
     `;
     imported++;
   }
