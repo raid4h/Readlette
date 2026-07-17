@@ -14,6 +14,7 @@ import { sql } from '../../../lib/db';
 // build time - but the book list changes whenever a sync/import/enrich runs,
 // so it always needs to hit the database fresh on every request.
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
