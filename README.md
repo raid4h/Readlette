@@ -1,4 +1,4 @@
-# Spine Time 🌿
+Readlette 🌿
 
 A little woodland magic for picking your next read from your Goodreads to-read shelf.
 
