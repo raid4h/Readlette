@@ -1,0 +1,384 @@
+/* =============================================================================
+   SPINE TIME - design tokens & theme
+   ---------------------------------------------------------------------------
+   Palette (named so it's easy to tweak later):
+     --moss       deep green   - primary text, borders
+     --fern       mid green    - buttons, secondary accents
+     --petal      dusty pink   - highlights, filter chips
+     --honey      gold         - sparkle accent, the shuffle button
+     --parchment  warm cream   - page background
+     --bark       deep brown   - grounded body text (softer than pure black)
+   ============================================================================= */
+
+:root {
+  --moss: #3e5641;
+  --fern: #6b8f71;
+  --petal: #e8b4bc;
+  --honey: #d4a24c;
+  --parchment: #fbf7ef;
+  --bark: #4a3728;
+
+  /* NOTE: --font-display and --font-body are intentionally NOT set here.
+     next/font/google (see app/layout.js) generates those two variables
+     itself, pointing at the actual self-hosted, loaded font files. If we
+     redeclared them here with plain font names like 'Fraunces', it could
+     win the CSS cascade and silently fall back to a generic system serif,
+     since a font literally named "Fraunces" isn't what the browser has
+     loaded - next/font renames it internally. */
+
+  --radius-lg: 28px;
+  --radius-md: 16px;
+  --shadow-soft: 0 12px 32px -12px rgba(62, 86, 65, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--parchment);
+  /* a faint dappled-light texture: soft green + gold radial blooms, very low
+     opacity, so the page never feels flat white but stays easy to read */
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(107, 143, 113, 0.14), transparent 40%),
+    radial-gradient(circle at 88% 92%, rgba(212, 162, 76, 0.12), transparent 45%);
+  background-attachment: fixed;
+  color: var(--bark);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+/* Keyboard focus should always be visible - whimsical doesn't mean hard to use */
+:focus-visible {
+  outline: 3px solid var(--honey);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   Layout shell
+   ============================================================================= */
+
+.app-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6vw, 3rem);
+  font-weight: 600;
+  color: var(--moss);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.header p {
+  font-size: 0.95rem;
+  color: var(--fern);
+  margin: 6px 0 0;
+}
+
+/* A simple hand-drawn-feeling divider made of a repeating leaf glyph rather
+   than a plain <hr> - small detail, but it's part of what keeps this from
+   feeling like a generic dashboard */
+.vine-divider {
+  text-align: center;
+  color: var(--fern);
+  letter-spacing: 12px;
+  font-size: 0.9rem;
+  margin: 24px 0;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   Cards (upload panel, sync panel, filter panel, book reveal)
+   ============================================================================= */
+
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(62, 86, 65, 0.12);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 24px;
+}
+
+.card h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--moss);
+  margin: 0 0 12px;
+}
+
+.card p.hint {
+  font-size: 0.85rem;
+  color: #7a7168;
+  margin: 4px 0 16px;
+}
+
+/* =============================================================================
+   Buttons
+   ============================================================================= */
+
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--fern);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--moss);
+  border: 2px solid var(--moss);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =============================================================================
+   Filter chips
+   ============================================================================= */
+
+.filter-group {
+  margin-bottom: 18px;
+}
+
+.filter-group-label {
+  font-weight: 700;
+  color: var(--moss);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: var(--parchment);
+  border: 2px solid rgba(62, 86, 65, 0.18);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bark);
+  transition: all 0.15s ease;
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--petal);
+  border-color: var(--petal);
+  color: var(--moss);
+}
+
+.chip:hover {
+  border-color: var(--fern);
+}
+
+.year-input {
+  border: 2px solid rgba(62, 86, 65, 0.18);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  width: 100px;
+}
+
+/* =============================================================================
+   The shuffle button - our signature element. A wax-seal-style medallion
+   that "pops" on press, with a scattering of sparkles that mark the moment
+   a book gets chosen - like a little bit of fairy dust doing the picking.
+   ============================================================================= */
+
+.shuffle-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 4px;
+}
+
+.shuffle-button {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e6c27a, var(--honey) 70%);
+  border: 4px solid var(--parchment);
+  box-shadow: 0 8px 20px -6px rgba(212, 162, 76, 0.6), 0 0 0 2px rgba(62, 86, 65, 0.15);
+  color: var(--moss);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.shuffle-button:active {
+  transform: scale(0.94);
+}
+
+.sparkle-field {
+  position: absolute;
+  inset: -30px;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 1.1rem;
+  color: var(--honey);
+  animation: sparkle-pop 0.7s ease-out forwards;
+}
+
+@keyframes sparkle-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(0);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(-24px);
+  }
+}
+
+/* =============================================================================
+   Book reveal card
+   ============================================================================= */
+
+.book-reveal {
+  text-align: center;
+  padding: 8px 0 4px;
+  animation: card-reveal 0.45s ease-out;
+}
+
+@keyframes card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.book-cover {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 14px;
+  background: var(--parchment);
+  border: 1px solid rgba(62, 86, 65, 0.15);
+}
+
+.book-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--moss);
+  margin: 0 0 4px;
+}
+
+.book-author {
+  font-size: 1rem;
+  color: var(--bark);
+  margin: 0 0 10px;
+}
+
+.book-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--fern);
+}
+
+.book-tags span {
+  background: rgba(107, 143, 113, 0.12);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #7a7168;
+  font-size: 0.95rem;
+  padding: 12px 0;
+}
+
+/* =============================================================================
+   Progress bar (used by the enrichment panel)
+   ============================================================================= */
+
+.progress-track {
+  background: rgba(62, 86, 65, 0.12);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  background: var(--fern);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* =============================================================================
+   Accessibility: respect reduced-motion preferences
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle,
+  .book-reveal {
+    animation: none !important;
+  }
+}
