@@ -147,3 +147,4 @@ retroactively).
 - **Author gender defaults to "unknown"** whenever we can't confidently match the
   author to a real Wikidata entry - this is intentional (see the comments in
   `lib/enrichGender.js`) rather than guessing from their name.
+# Readlette
