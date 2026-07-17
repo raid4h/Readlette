@@ -23,8 +23,8 @@ const quicksand = Quicksand({
 });
 
 export const metadata = {
-  title: 'Spine Time 🌿',
-  description: 'A little woodland magic for picking your next read.',
+  title: 'ʚ Readlette ɞ',
+  description: 'A mildly unhinged fairy oracle that chooses your next book.',
 };
 
 export default function RootLayout({ children }) {

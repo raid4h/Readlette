@@ -1,117 +1,211 @@
 'use client';
 
-// =============================================================================
-// All filtering happens client-side against the full book list already
-// fetched in app/page.js - with ~1251 books that's a tiny amount of data to
-// filter in the browser, and it means every checkbox click is instant with
-// no server round-trip.
-//
-// `filters` shape (lives in app/page.js, passed down):
-//   {
-//     genres: Set<string>       - empty set = no genre filter (show all)
-//     decades: Set<string>      - e.g. Set(['1990s','2010s'])
-//     customYear: string        - exact year as typed text, '' = unused
-//     genders: Set<string>      - subset of ['female','male','unknown']
-//   }
-// =============================================================================
+// ============================================================================
+// Readlette
+// ----------------------------------------------------------------------------
+// The Fairy Court must know thy preferences before making a decree.
+// All filtering happens client-side.
+// ============================================================================
 
 function toggleInSet(set, value) {
   const next = new Set(set);
-  next.has(value) ? next.delete(value) : next.add(value);
+
+  next.has(value)
+    ? next.delete(value)
+    : next.add(value);
+
   return next;
 }
 
-export default function FilterPanel({ books, filters, setFilters }) {
-  // Genres and decades are derived from whatever's actually in your library,
-  // so this list is never stale and never shows options with zero matches.
-  const allGenres = [...new Set(books.flatMap((b) => b.genres || []))].sort();
+export default function FilterPanel({
+  books,
+  filters,
+  setFilters,
+}) {
+  const allGenres = [
+    ...new Set(
+      books.flatMap(book => book.genres || [])
+    ),
+  ].sort();
 
   const allDecades = [
     ...new Set(
       books
-        .filter((b) => b.pub_year)
-        .map((b) => `${Math.floor(b.pub_year / 10) * 10}s`)
+        .filter(book => book.pub_year)
+        .map(
+          book =>
+            `${Math.floor(book.pub_year / 10) * 10}s`
+        )
     ),
   ].sort();
 
   const genderOptions = [
-    { value: 'female', label: 'Female authors' },
-    { value: 'male', label: 'Male authors' },
-    { value: 'unknown', label: 'Unknown' },
+    {
+      value: "female",
+      label: "Ladies"
+    },
+    {
+      value: "male",
+      label: "Gentlemen"
+    },
+    {
+      value: "unknown",
+      label: "Mysterious Beings"
+    },
   ];
 
   return (
+
     <div className="card">
-      <h2>🍄 Narrow the path</h2>
-      <p className="hint">Leave everything unchecked to wander the whole shelf.</p>
+
+      <h2>
+
+        👑 Present Thy Demands
+
+      </h2>
+
+      <p className="hint">
+
+        The Fairy Court shall attempt to obey...
+
+      </p>
 
       {allGenres.length > 0 && (
-        <div className="filter-group">
-          <span className="filter-group-label">Genre</span>
+
+        <section className="filter-section">
+
+          <h3 className="filter-title">
+
+            📚 Desired Genres
+
+          </h3>
+
           <div className="chip-row">
-            {allGenres.map((genre) => (
+
+            {allGenres.map(genre => (
+
               <button
                 key={genre}
                 type="button"
                 className="chip"
                 aria-pressed={filters.genres.has(genre)}
                 onClick={() =>
-                  setFilters((f) => ({ ...f, genres: toggleInSet(f.genres, genre) }))
+                  setFilters(f => ({
+                    ...f,
+                    genres: toggleInSet(
+                      f.genres,
+                      genre
+                    ),
+                  }))
                 }
               >
+
                 {genre}
+
               </button>
+
             ))}
+
           </div>
-        </div>
+
+        </section>
+
       )}
 
       {allDecades.length > 0 && (
-        <div className="filter-group">
-          <span className="filter-group-label">Era</span>
+
+        <section className="filter-section">
+
+          <h3 className="filter-title">
+
+            🕰 Preferred Century
+
+          </h3>
+
           <div className="chip-row">
-            {allDecades.map((decade) => (
+
+            {allDecades.map(decade => (
+
               <button
                 key={decade}
                 type="button"
                 className="chip"
                 aria-pressed={filters.decades.has(decade)}
                 onClick={() =>
-                  setFilters((f) => ({ ...f, decades: toggleInSet(f.decades, decade) }))
+                  setFilters(f => ({
+                    ...f,
+                    decades: toggleInSet(
+                      f.decades,
+                      decade
+                    ),
+                  }))
                 }
               >
+
                 {decade}
+
               </button>
+
             ))}
+
             <input
-              type="number"
               className="year-input"
-              placeholder="or a year..."
+              type="number"
+              placeholder="Specific year..."
               value={filters.customYear}
-              onChange={(e) => setFilters((f) => ({ ...f, customYear: e.target.value }))}
+              onChange={e =>
+                setFilters(f => ({
+                  ...f,
+                  customYear: e.target.value,
+                }))
+              }
             />
+
           </div>
-        </div>
+
+        </section>
+
       )}
 
-      <div className="filter-group">
-        <span className="filter-group-label">Author</span>
+      <section className="filter-section">
+
+        <h3 className="filter-title">
+
+          ✒ Preferred Authors
+
+        </h3>
+
         <div className="chip-row">
-          {genderOptions.map((opt) => (
+
+          {genderOptions.map(option => (
+
             <button
-              key={opt.value}
-              type="button"
+              key={option.value}
               className="chip"
-              aria-pressed={filters.genders.has(opt.value)}
+              type="button"
+              aria-pressed={filters.genders.has(option.value)}
               onClick={() =>
-                setFilters((f) => ({ ...f, genders: toggleInSet(f.genders, opt.value) }))
+                setFilters(f => ({
+                  ...f,
+                  genders: toggleInSet(
+                    f.genders,
+                    option.value
+                  ),
+                }))
               }
             >
-              {opt.label}
+
+              {option.label}
+
             </button>
+
           ))}
+
         </div>
-      </div>
+
+      </section>
+
     </div>
+
   );
 }

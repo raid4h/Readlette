@@ -1,104 +1,207 @@
 'use client';
 
-// =============================================================================
-// Two jobs live here:
-//
-// 1. "Sync now" - manually triggers the same RSS check that runs
-//    automatically once a day via Vercel Cron (see vercel.json + README).
-//    Mostly useful right after you add a book and don't want to wait for
-//    the daily cron.
-//
-// 2. Enrichment progress - genre & author-gender lookups happen in batches
-//    (see app/api/enrich/route.js) rather than all at once. This panel
-//    shows how many books still need enriching and lets you run it now
-//    instead of waiting for it to happen gradually.
-// =============================================================================
 import { useState } from 'react';
+import {
+  syncMessages,
+  enrichMessages,
+} from '../lib/royalDecrees';
+
+function randomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
 
 export default function SyncPanel({ books, onDataChanged }) {
+
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+
   const [enriching, setEnriching] = useState(false);
 
   const total = books.length;
-  const enrichedCount = books.filter((b) => b.enriched).length;
+
+  const enrichedCount = books.filter(book => book.enriched).length;
+
   const remaining = total - enrichedCount;
-  const percent = total === 0 ? 0 : Math.round((enrichedCount / total) * 100);
+
+  const percent =
+    total === 0
+      ? 0
+      : Math.round((enrichedCount / total) * 100);
 
   async function handleSync() {
+
     setSyncing(true);
-    setSyncMessage('');
+
+    setSyncMessage("🕊 Dispatching ravens to Goodreads...");
+
     try {
+
       const res = await fetch('/api/sync-rss');
+
       const data = await res.json();
+
       if (!res.ok) {
-        setSyncMessage(data.error || 'Sync failed.');
-      } else {
+
         setSyncMessage(
-          data.newBooksAdded > 0
-            ? `Found ${data.newBooksAdded} new book(s)! 🍃`
-            : 'All caught up - no new books since last sync.'
+
+          data.error ||
+
+          "The ravens returned confused."
+
         );
+
+      } else {
+
+        if (data.newBooksAdded > 0) {
+
+          setSyncMessage(
+
+            `${randomItem(syncMessages)}
+
+📚 ${data.newBooksAdded} new tome${data.newBooksAdded === 1 ? '' : 's'} entered the Royal Library.`
+
+          );
+
+        } else {
+
+          setSyncMessage(
+
+            "🦉 The ravens returned empty-clawed. No new tomes were discovered."
+
+          );
+
+        }
+
         onDataChanged?.();
+
       }
+
     } catch {
-      setSyncMessage('Could not reach Goodreads. Try again in a moment.');
-    } finally {
-      setSyncing(false);
+
+      setSyncMessage(
+
+        "The messenger owl appears to have unionised."
+
+      );
+
     }
+
+    setSyncing(false);
+
   }
 
-  // Keeps calling /api/enrich (20 books at a time) until nothing is left,
-  // refreshing the book list after every batch so the progress bar - and
-  // your filters - update as it goes.
   async function handleEnrichAll() {
+
     setEnriching(true);
+
     let stillRemaining = remaining;
 
     while (stillRemaining > 0) {
-      const res = await fetch('/api/enrich', { method: 'POST' });
+
+      const res = await fetch('/api/enrich', {
+
+        method: 'POST',
+
+      });
+
       const data = await res.json();
+
       stillRemaining = data.remaining;
+
       onDataChanged?.();
-      if (data.processed === 0) break; // safety valve against infinite loops
+
+      if (data.processed === 0) break;
+
     }
 
     setEnriching(false);
+
   }
 
   return (
+
     <div className="card">
-      <h2>🔄 Keep it fresh</h2>
+
+      <h2>
+
+        🕊 Royal Messenger Service
+
+      </h2>
+
       <p className="hint">
-        New books added on Goodreads show up here automatically once a day.
-        Don't want to wait? Sync now.
+
+        Her Majesty periodically dispatches ravens to inspect thy Goodreads shelf.
+        Should impatience consume thee, summon one immediately.
+
       </p>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <button className="btn btn-secondary" onClick={handleSync} disabled={syncing}>
-          {syncing ? 'Checking Goodreads...' : 'Sync now'}
-        </button>
-        {syncMessage && <span className="hint" style={{ margin: 0 }}>{syncMessage}</span>}
-      </div>
+      <button
+        className="btn btn-secondary"
+        disabled={syncing}
+        onClick={handleSync}
+      >
+
+        {syncing
+          ? "Consulting the ravens..."
+          : "Summon a raven"}
+
+      </button>
+
+      {syncMessage && (
+
+        <p
+          className="hint"
+          style={{
+            marginTop:15,
+            whiteSpace:"pre-line"
+          }}
+        >
+
+          {syncMessage}
+
+        </p>
+
+      )}
 
       {remaining > 0 && (
-        <div style={{ marginTop: 18 }}>
-          <p className="hint" style={{ marginBottom: 4 }}>
-            Sorting genres & author details: {enrichedCount} / {total} done
-          </p>
+
+        <>
+
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${percent}%` }} />
+
+            <div
+              className="progress-fill"
+              style={{
+                width:`${percent}%`
+              }}
+            />
+
           </div>
+
+          <p className="hint">
+
+            {enrichedCount} of {total} books have been reviewed by the Royal Librarians.
+
+          </p>
+
           <button
             className="btn btn-secondary"
-            style={{ marginTop: 10, fontSize: '0.8rem', padding: '8px 16px' }}
-            onClick={handleEnrichAll}
             disabled={enriching}
+            onClick={handleEnrichAll}
           >
-            {enriching ? 'Working through the shelf...' : 'Sort remaining books now'}
+
+            {enriching
+              ? randomItem(enrichMessages)
+              : "Summon additional librarians"}
+
           </button>
-        </div>
+
+        </>
+
       )}
+
     </div>
+
   );
+
 }

@@ -71,13 +71,15 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="header">
-        <h1>Spine Time</h1>
-        <p>a little woodland magic for your to-read pile</p>
+        <h1>Readlette ✨</h1>
+        <p>the Fairy Court hath selected thy next tome.</p>
       </header>
-      <div className="vine-divider">🌿 ✦ 🌿</div>
+      <div className="vine-divider">
+      ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
+      </div>
 
       {loading ? (
-        <p className="empty-state">Waking up the shelf...</p>
+        <p className="empty-state">✨ Summoning the Fairy Council...</p>
       ) : books.length === 0 ? (
         <UploadCsv onImported={loadBooks} />
       ) : (
