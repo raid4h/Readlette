@@ -12,6 +12,9 @@
 // 3. Picks a random book.
 // 4. Displays a random royal decree.
 // 5. Shows sparkles.
+//
+// Once a book is revealed, you can save it to 🎀 Thy Fated Reads so you
+// remember the thread even after shuffling again.
 // =============================================================================
 
 import { useState, useEffect } from 'react';
@@ -47,7 +50,7 @@ function randomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-export default function ShuffleCard({ filteredBooks }) {
+export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [pickedBook, setPickedBook] = useState(null);
 
   const [shuffleCount, setShuffleCount] = useState(0);
@@ -103,6 +106,31 @@ export default function ShuffleCard({ filteredBooks }) {
   setThinking(false);
 
 }
+
+  async function toggleFated() {
+
+    if (!pickedBook) return;
+
+    const isQueued = !!pickedBook.queued_at;
+    const action = isQueued ? 'unqueue' : 'queue';
+
+    // Optimistic local update so the button flips instantly, rather than
+    // waiting on the round trip.
+    setPickedBook(prev => ({
+      ...prev,
+      queued_at: isQueued ? null : new Date().toISOString(),
+    }));
+
+    await fetch('/api/books/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: pickedBook.id, action }),
+    });
+
+    // Refreshes the full book list so 🎀 Thy Fated Reads picks up the change.
+    onStatusChange?.();
+
+  }
 
   return (
 
@@ -268,6 +296,14 @@ export default function ShuffleCard({ filteredBooks }) {
             ))}
 
           </div>
+
+          <button
+            type="button"
+            className="btn btn-secondary fated-save-btn"
+            onClick={toggleFated}
+          >
+            {pickedBook.queued_at ? '💔 Remove from Fated Reads' : '💌 Save to Fated Reads'}
+          </button>
 
         </div>
 

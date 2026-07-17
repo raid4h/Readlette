@@ -31,6 +31,12 @@ CREATE TABLE IF NOT EXISTS books (
 
   shelf           TEXT DEFAULT 'to-read',
 
+  -- When you save a book from the Oracle's pick to read next, this gets set
+  -- to the current timestamp. NULL means "not on your list." Using a
+  -- timestamp (not just true/false) lets the sidebar sort itself by most
+  -- recently chosen, for free.
+  queued_at       TIMESTAMP,
+
   -- Has the genre/gender lookup been attempted for this book yet? The
   -- enrichment endpoint processes books in small batches, so this flag is
   -- how it knows what's left to do.
@@ -45,3 +51,5 @@ CREATE INDEX IF NOT EXISTS idx_books_enriched ON books (enriched) WHERE enriched
 
 -- Speeds up "give me everything on the to-read shelf"
 CREATE INDEX IF NOT EXISTS idx_books_shelf ON books (shelf);
+
+CREATE INDEX IF NOT EXISTS idx_books_queued ON books (queued_at) WHERE queued_at IS NOT NULL;

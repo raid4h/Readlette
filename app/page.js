@@ -8,12 +8,17 @@
 //
 // If you haven't imported anything yet (books.length === 0), it shows the
 // CSV upload panel instead of the filters/shuffle UI.
+//
+// Layout: main content (filters/shuffle/sync) lives in .app-shell; Thy Fated
+// Reads sits beside it as a sticky sidebar on wide screens, and stacks below
+// it on narrower ones (see .page-layout in globals.css).
 // =============================================================================
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import UploadCsv from '../components/UploadCsv';
 import SyncPanel from '../components/SyncPanel';
 import FilterPanel from '../components/FilterPanel';
 import ShuffleCard from '../components/ShuffleCard';
+import FatedReads from '../components/FatedReads';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -79,32 +84,42 @@ export default function Home() {
   }, [books, filters]);
 
   return (
-    <div className="app-shell">
-      <header className="header">
-        <h1>ʚ Readlette ɞ</h1>
-        <p>the Fairy Court hath selected thy next tome.</p>
-      </header>
-      <div className="vine-divider">
-      ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
+    <div className="page-layout">
+
+      <div className="app-shell">
+        <header className="header">
+          <h1>ʚ Readlette ɞ</h1>
+          <p>the Fairy Court hath selected thy next tome.</p>
+        </header>
+        <div className="vine-divider">
+        ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
+        </div>
+
+        {loading ? (
+          <p className="empty-state">✨ Summoning the Fairy Council...</p>
+        ) : loadError ? (
+          // NEW: visible error + retry instead of a silent, indefinite hang
+          <div className="empty-state">
+            <p>{loadError}</p>
+            <button onClick={loadBooks}>Try again</button>
+          </div>
+        ) : books.length === 0 ? (
+          <UploadCsv onImported={loadBooks} />
+        ) : (
+          <>
+            <FilterPanel books={books} filters={filters} setFilters={setFilters} />
+            <ShuffleCard filteredBooks={filteredBooks} onStatusChange={loadBooks} />
+            <SyncPanel books={books} onDataChanged={loadBooks} />
+          </>
+        )}
       </div>
 
-      {loading ? (
-        <p className="empty-state">✨ Summoning the Fairy Council...</p>
-      ) : loadError ? (
-        // NEW: visible error + retry instead of a silent, indefinite hang
-        <div className="empty-state">
-          <p>{loadError}</p>
-          <button onClick={loadBooks}>Try again</button>
-        </div>
-      ) : books.length === 0 ? (
-        <UploadCsv onImported={loadBooks} />
-      ) : (
-        <>
-          <FilterPanel books={books} filters={filters} setFilters={setFilters} />
-          <ShuffleCard filteredBooks={filteredBooks} />
-          <SyncPanel books={books} onDataChanged={loadBooks} />
-        </>
+      {!loading && !loadError && books.length > 0 && (
+        <aside className="fated-sidebar">
+          <FatedReads books={books} onStatusChange={loadBooks} />
+        </aside>
       )}
+
     </div>
   );
 }

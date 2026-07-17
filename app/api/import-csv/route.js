@@ -1,34 +1,20 @@
 // =============================================================================
 // POST /api/import-csv
 //
-// Receives the raw text of your Goodreads export CSV (the frontend reads the
-// uploaded file and sends its contents as the request body - see
-// components/UploadCsv.js), parses it, and upserts every to-read book into
-// the database.
-//
-// "Upsert" = insert if new, or update if we've already seen that
-// goodreads_id before. This makes it SAFE to re-run this import any time
-// (e.g. you re-export your library later) without creating duplicates.
+// Step 2 of a two-step import (see /api/import-csv/parse for step 1).
+// Receives one JSON batch of already-parsed books and upserts just that
+// batch. The frontend calls this repeatedly, one batch at a time, so it can
+// show real "X of Y tomes catalogued" progress - see components/UploadCsv.js.
 // =============================================================================
 import { sql } from '../../../lib/db';
-import { parseGoodreadsCsv } from '../../../lib/parseGoodreadsCsv';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
-  const csvText = await request.text();
+  const { books } = await request.json();
 
-  if (!csvText || csvText.length < 10) {
-    return Response.json({ error: 'No CSV content received.' }, { status: 400 });
-  }
-
-  const books = parseGoodreadsCsv(csvText);
-
-  if (books.length === 0) {
-    return Response.json(
-      { error: 'No to-read books found in that file. Is this a Goodreads library export CSV?' },
-      { status: 400 }
-    );
+  if (!Array.isArray(books) || books.length === 0) {
+    return Response.json({ error: 'No books in batch.' }, { status: 400 });
   }
 
   let imported = 0;
@@ -36,7 +22,7 @@ export async function POST(request) {
   for (const book of books) {
     await sql`
       INSERT INTO books (goodreads_id, title, author, isbn, isbn13, pub_year, date_added, shelf)
-      VALUES (${book.goodreadsId}, ${book.title}, ${book.author}, ${book.isbn}, ${book.isbn13}, ${book.pubYear}, ${book.dateAdded}, 'to-read')
+      VALUES (${book.goodreadsId}, ${book.title}, ${book.author}, ${book.isbn}, ${book.isbn13}, ${book.pubYear}, ${book.dateAdded}, ${book.shelf})
       ON CONFLICT (goodreads_id) DO UPDATE SET
         title = EXCLUDED.title,
         author = EXCLUDED.author,
@@ -45,12 +31,6 @@ export async function POST(request) {
         pub_year = EXCLUDED.pub_year,
         date_added = EXCLUDED.date_added,
         shelf = EXCLUDED.shelf
-        -- shelf was missing here before. Without it, re-running an import
-        -- (or a daily sync) on a book that already exists in the table would
-        -- silently leave its shelf value untouched forever - which is why
-        -- every row ended up with a shelf value that never matched
-        -- WHERE shelf = 'to-read' in /api/books, even though COUNT(*)
-        -- correctly showed all 1254 rows existed.
     `;
     imported++;
   }

@@ -18,7 +18,7 @@ export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
-    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched
+    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at
     FROM books
     WHERE shelf = 'to-read'
     ORDER BY title ASC
