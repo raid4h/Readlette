@@ -28,16 +28,31 @@ export default function FilterPanel({
     ),
   ].sort();
 
-  const allDecades = [
-    ...new Set(
-      books
-        .filter(book => book.pub_year)
-        .map(
-          book =>
-            `${Math.floor(book.pub_year / 10) * 10}s`
-        )
-    ),
-  ].sort();
+function decadeLabel(pubYear) {
+    const isBCE = pubYear < 0;
+    const decadeStart = Math.floor(Math.abs(pubYear) / 10) * 10;
+    return isBCE ? `${decadeStart}s BCE` : `${decadeStart}s`;
+  }
+
+  function decadeSortValue(pubYear) {
+    const isBCE = pubYear < 0;
+    const decadeStart = Math.floor(Math.abs(pubYear) / 10) * 10;
+    return isBCE ? -decadeStart : decadeStart;
+  }
+
+  const decadeMap = new Map();
+  books
+    .filter(book => book.pub_year)
+    .forEach(book => {
+      const label = decadeLabel(book.pub_year);
+      if (!decadeMap.has(label)) {
+        decadeMap.set(label, decadeSortValue(book.pub_year));
+      }
+    });
+
+  const allDecades = [...decadeMap.entries()]
+    .sort((a, b) => a[1] - b[1])
+    .map(([label]) => label);
 
   const genderOptions = [
     {

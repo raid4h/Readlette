@@ -81,7 +81,7 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="header">
-        <h1>Readlette ✨</h1>
+        <h1>ʚ Readlette ɞ</h1>
         <p>the Fairy Court hath selected thy next tome.</p>
       </header>
       <div className="vine-divider">
