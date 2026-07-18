@@ -24,8 +24,8 @@ A whimsical, fairy-court/cottagecore-themed web app that randomly picks a book f
 
 1. Clone the repo and install dependencies:
    ```bash
-   git clone https://github.com/YOUR_GITHUB_USERNAME/readlette.git
-   cd readlette
+   git clone https://github.com/raid4h/Readlette.git
+   cd Readlette
    npm install
    ```
 
