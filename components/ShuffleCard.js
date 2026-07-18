@@ -272,51 +272,73 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
         </div>
       )}
 
-      {/* --- Single reveal --- */}
       {pickedBook && (
-        <div className="book-reveal" key={pickedBook.id}>
 
-          <p className="royal-decree">{decreeTitle}</p>
-          <div className="royal-divider">✦ ───────── ✦</div>
-          <h2 className="thou-shalt">THOU SHALT READ</h2>
+        <div
+          className="book-reveal"
+          key={pickedBook.id}
+        >
 
-          {coverSrc && (
-            <img
-              className="book-cover"
-              src={coverSrc}
-              alt={pickedBook.title}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
-
-          <p className="book-title">{pickedBook.title}</p>
-          <p className="book-author">by {pickedBook.author}</p>
-
-          <div className="book-tags">
-            {pickedBook.pub_year && <span>{pickedBook.pub_year}</span>}
-            {(pickedBook.genres || []).map(g => <span key={g}>{g}</span>)}
+          <div className="royal-scroll-top">
+            ✦════════════════════✦
           </div>
 
-          <div className="book-reveal-actions">
-            <button type="button" className="btn btn-secondary fated-save-btn" onClick={toggleFated}>
-              {pickedBook.queued_at ? '💔 Remove from Fated Reads' : '💌 Save to Fated Reads'}
-            </button>
+          <p className="royal-decree">
+            {decreeTitle}
+          </p>
 
-            {pickedBook.shelf !== 'read' && (
-              <button type="button" className="btn btn-secondary fated-save-btn" onClick={markFinished}>
-                ✅ 'Tis Already Read
-              </button>
+          <h2 className="thou-shalt">
+            THOU SHALT READ...
+          </h2>
+
+          <p className="court-message">
+            {
+              royalDecrees[
+                Math.floor(Math.random() * royalDecrees.length)
+              ]
+            }
+          </p>
+
+          {pickedBook.cover_url && (
+
+            <img
+              className="book-cover"
+              src={pickedBook.cover_url}
+              alt={pickedBook.title}
+            />
+
+          )}
+
+          <p className="book-title">
+            {pickedBook.title}
+          </p>
+
+          <p className="book-author">
+            by {pickedBook.author}
+          </p>
+
+          <div className="book-tags">
+
+            {pickedBook.pub_year && (
+              <span>{pickedBook.pub_year}</span>
             )}
 
-            {/* NEW */}
-            <button type="button" className="btn btn-secondary fated-save-btn" onClick={removeBook}>
-              🗑️ Not Interested
-            </button>
+            {(pickedBook.genres || []).map(g => (
+              <span key={g}>
+                {g}
+              </span>
+            ))}
+
+          </div>
+
+          <div className="royal-scroll-bottom">
+            ✦════════════════════✦
           </div>
 
         </div>
-      )}
 
+      )}
+      
       {/* --- Three Fates tarot spread --- */}
       {threeFates && (
         <div className="book-reveal">

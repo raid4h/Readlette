@@ -150,19 +150,33 @@ export default function UploadCsv({ onImported }) {
 
     <div className="card">
 
-      <h2>👑 Present Thy Library</h2>
+    <div className="court-label">
+        ✦ ROYAL ARCHIVES ✦
+    </div>
 
-      <p className="hint">
-        Export thy Goodreads library.
-        The Fairy Court shall catalogue every tome and preserve it within the Royal Archives.
-      </p>
+    <h2 className="court-title">
+        Present Thy Library
+    </h2>
 
-      <input
-        type="file"
-        accept=".csv"
-        disabled={status === 'uploading'}
-        onChange={handleFileChange}
-      />
+    <p className="court-subtitle">
+        Every worthy tome shall be entered into the Royal Archives,
+        inspected by enchanted librarians,
+        and submitted to the Fairy Court for eternal record.
+    </p>
+
+    <label className="upload-scroll">
+
+        📜 Choose Thy Goodreads Scroll
+
+        <input
+            type="file"
+            accept=".csv"
+            disabled={status === "uploading"}
+            onChange={handleFileChange}
+            hidden
+        />
+
+    </label>
 
       {status === 'idle' && (
         <p className="hint">

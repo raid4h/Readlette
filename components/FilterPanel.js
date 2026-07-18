@@ -64,15 +64,15 @@ function decadeLabel(pubYear) {
   const genderOptions = [
     {
       value: "female",
-      label: "Ladies"
+      label: "👑 Ladies of Letters"
     },
     {
       value: "male",
-      label: "Gentlemen"
+      label: "🎩 Distinguished Gentlemen"
     },
     {
       value: "unknown",
-      label: "Mysterious Beings"
+      label: "🧚 Unknown Creatures"
     },
   ];
 
@@ -90,17 +90,18 @@ function decadeLabel(pubYear) {
 
     <div className="card">
 
-      <h2>
+    <div className="court-label">
+        ✦ ROYAL PETITION OFFICE ✦
+    </div>
 
-        👑 Present Thy Demands
+    <h2 className="court-title">
+        Submit Thy Petition
+    </h2>
 
-      </h2>
-
-      <p className="hint">
-
-        The Fairy Court shall attempt to obey...
-
-      </p>
+    <p className="court-subtitle">
+        The Fairy Court shall graciously ignore most complaints,
+        but thy preferences shall nevertheless be considered.
+    </p>
 
       {allGenres.length > 0 && (
 
@@ -108,7 +109,7 @@ function decadeLabel(pubYear) {
 
           <h3 className="filter-title">
 
-            📚 Desired Genres
+            📚 Desired Realms
 
           </h3>
 
@@ -150,7 +151,7 @@ function decadeLabel(pubYear) {
 
           <h3 className="filter-title">
 
-            🕰 Preferred Century
+            🕰 Age of Publication
 
           </h3>
 
@@ -183,7 +184,7 @@ function decadeLabel(pubYear) {
             <input
               className="year-input"
               type="number"
-              placeholder="Specific year..."
+              placeholder="Anno..."
               value={filters.customYear}
               onChange={e =>
                 setFilters(f => ({
@@ -207,7 +208,7 @@ function decadeLabel(pubYear) {
 
           <h3 className="filter-title">
 
-            📏 Preferred Length
+            📏 Thickness of Tome
 
           </h3>
 
@@ -250,7 +251,7 @@ function decadeLabel(pubYear) {
 
         <h3 className="filter-title">
 
-          ✒ Preferred Authors
+          ✒ Keepers of the Quill
 
         </h3>
 
