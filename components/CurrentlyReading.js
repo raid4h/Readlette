@@ -5,9 +5,9 @@
 // ----------------------------------------------------------------------------
 // 📖 What Thou Art Presently Reading
 //
-// Now shows a real cover (via Open Library, same as everywhere else) and
-// genre tags (reusing the .book-tags styling from the Oracle reveal),
-// instead of just a bare title.
+// Layout changed to stacked + centered (cover on top, then title/author/
+// genres below) to match the Oracle reveal's look - the previous
+// side-by-side row read oddly with just one or two books shown.
 // ============================================================================
 
 import { useState, useEffect } from 'react';
@@ -34,8 +34,6 @@ export default function CurrentlyReading() {
 
       <div className="currently-reading-list">
         {books.map(book => {
-          // 'M' size - bigger than the tiny list thumbnails elsewhere,
-          // since this only ever shows 1-2 books at a time.
           const cover = getCoverUrl(book, 'M');
 
           return (
@@ -50,16 +48,14 @@ export default function CurrentlyReading() {
                 />
               )}
 
-              <div className="currently-reading-info">
-                <p className="currently-reading-title">{book.title}</p>
-                <p className="currently-reading-author">by {book.author}</p>
+              <p className="currently-reading-title">{book.title}</p>
+              <p className="currently-reading-author">by {book.author}</p>
 
-                {(book.genres || []).length > 0 && (
-                  <div className="book-tags">
-                    {book.genres.map(g => <span key={g}>{g}</span>)}
-                  </div>
-                )}
-              </div>
+              {(book.genres || []).length > 0 && (
+                <div className="book-tags">
+                  {book.genres.map(g => <span key={g}>{g}</span>)}
+                </div>
+              )}
 
             </div>
           );

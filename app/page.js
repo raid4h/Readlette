@@ -21,15 +21,16 @@ import FatedReads from '../components/FatedReads';
 import KoboList from '../components/KoboList';
 import AddBookSearch from '../components/AddBookSearch';
 import CurrentlyReading from '../components/CurrentlyReading';
-import SeriesProgress from '../components/SeriesProgress';
 import AboutFooter from '../components/AboutFooter';
 import { parseSeriesInfo } from '../lib/seriesUtils';
+import { getPageLengthLabel } from '../lib/pageLength';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
   decades: new Set(),
   customYear: '',
   genders: new Set(),
+  lengths: new Set(),
 };
 
 export default function Home() {
@@ -80,6 +81,12 @@ export default function Home() {
 
       if (filters.genders.size > 0) {
         if (!filters.genders.has(book.author_gender)) return false;
+      }
+
+      // page-count length filter
+      if (filters.lengths.size > 0) {
+        const label = getPageLengthLabel(book.page_count);
+        if (!label || !filters.lengths.has(label)) return false;
       }
 
       return true;
@@ -178,8 +185,6 @@ export default function Home() {
             <AddBookSearch books={books} onStatusChange={loadBooks} />
             <FatedReads books={books} onStatusChange={loadBooks} />
             <KoboList books={books} onStatusChange={loadBooks} />
-            {/* NEW: series progress, refetches whenever loadBooks fires */}
-            <SeriesProgress onStatusChange={loadBooks} />
           </aside>
         )}
 

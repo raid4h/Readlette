@@ -5,7 +5,14 @@
 // ----------------------------------------------------------------------------
 // The Fairy Court must know thy preferences before making a decree.
 // All filtering happens client-side.
+//
+// NEW: added a 📏 Preferred Length section, using the same "only show
+// options that actually exist in the data" pattern as decades - if no book
+// has a page count yet (enrichment hasn't run), this whole section just
+// doesn't render, same as how genres/decades hide themselves when empty.
 // ============================================================================
+
+import { getPageLengthLabel, LENGTH_ORDER } from '../lib/pageLength';
 
 function toggleInSet(set, value) {
   const next = new Set(set);
@@ -68,6 +75,16 @@ function decadeLabel(pubYear) {
       label: "Mysterious Beings"
     },
   ];
+
+  // NEW: figure out which length categories actually have at least one
+  // book, same principle as decadeMap above - no point showing an "Epic
+  // Tome" chip if page-count enrichment hasn't run yet / found none.
+  const presentLengths = new Set(
+    books
+      .map(book => getPageLengthLabel(book.page_count))
+      .filter(Boolean)
+  );
+  const availableLengths = LENGTH_ORDER.filter(label => presentLengths.has(label));
 
   return (
 
@@ -175,6 +192,53 @@ function decadeLabel(pubYear) {
                 }))
               }
             />
+
+          </div>
+
+        </section>
+
+      )}
+
+      {/* NEW: length filter section - only renders if enrichment has
+          found at least one book with a page count */}
+      {availableLengths.length > 0 && (
+
+        <section className="filter-section">
+
+          <h3 className="filter-title">
+
+            📏 Preferred Length
+
+          </h3>
+
+          <div className="chip-row">
+
+            {availableLengths.map(label => (
+
+              <button
+                key={label}
+                type="button"
+                className="chip"
+                aria-pressed={filters.lengths.has(label)}
+                onClick={() =>
+                  setFilters(f => ({
+                    ...f,
+                    lengths: toggleInSet(
+                      f.lengths,
+                      label
+                    ),
+                  }))
+                }
+              >
+
+                {label === 'Short Quest' && '🗡️ '}
+                {label === 'Standard Journey' && '🗺️ '}
+                {label === 'Epic Tome' && '🏰 '}
+                {label}
+
+              </button>
+
+            ))}
 
           </div>
 

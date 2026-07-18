@@ -18,14 +18,11 @@ export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
-    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at, kobo_at, isbn, isbn13
+    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at, kobo_at, isbn, isbn13, page_count, pages_enriched
     FROM books
     WHERE shelf = 'to-read'
     ORDER BY title ASC
   `;
-  // ^ added isbn and isbn13 - the frontend uses these to build a cover
-  // image URL on the fly (see lib/covers.js), since the CSV never gives us
-  // a real cover_url to store.
 
   return Response.json({ books: rows });
 }
