@@ -164,7 +164,7 @@ export default function Home() {
 
               <div style={{ textAlign: 'center', margin: '30px 0' }}>
                 <button className="btn btn-secondary" onClick={() => setShowReupload((s) => !s)}>
-                  {showReupload ? '📜 Hide the Scroll' : '📜 Reupload My Shelf'}
+                  {showReupload ? '📜 The Oracle Hath Seen Enough' : '📜 Present Thy Library'}
                 </button>
               </div>
 

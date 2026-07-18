@@ -380,7 +380,7 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
               className="btn btn-secondary fated-save-btn"
               onClick={removeBook}
             >
-              🗑️ Not Interested
+              🗑️ Banish This Tome
             </button>
 
           </div>
