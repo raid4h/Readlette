@@ -72,7 +72,7 @@ export default function FatedReads({ books, onStatusChange }) {
             The Royal Archivists have reserved these tomes especially for thee.
           </p>
 
-          <ul className="fated-list">
+          <ul className="fated-list fated-scroll">
 
             {queued.map(book => (
 

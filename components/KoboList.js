@@ -50,7 +50,7 @@ export default function KoboList({ books, onStatusChange }) {
           Perhaps the Royal Messenger should deliver one.
         </p>
       ) : (
-        <ul className="fated-list">
+        <ul className="fated-list fated-scroll">
 
           {koboBooks.map(book => (
 
