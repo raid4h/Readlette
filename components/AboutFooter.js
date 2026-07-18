@@ -27,11 +27,10 @@ export default function AboutFooter() {
       </p>
 
         <p className="hint">
-          Readlette is an enchanted librarian disguised as a web application.
-          It consulteth a Fairy Court, issueth absurd royal decrees, and
-          selecteth one unfortunate tome from a rather unreasonable Goodreads
-          collection. Fashioned with Next.js, PostgreSQL, and entirely too much
-          dramatic bureaucracy. Built for personal use.
+          Readlette is a personal project with a little Fairy oracle that
+          picks a random book from my 1250+ book Goodreads to-read shelf,
+          with filters for genre, decade, and author gender. Built for
+          personal use and as a portfolio piece with Next.js and Postgres.
         </p>
 
         <div className="about-footer-links">

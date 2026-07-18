@@ -71,7 +71,7 @@ export default function KoboList({ books, onStatusChange }) {
                   title="Add to Fated Reads"
                   onClick={() => updateStatus(book.id, 'queue')}
                 >
-                  ✨
+                  💌
                 </button>
 
                 <button
