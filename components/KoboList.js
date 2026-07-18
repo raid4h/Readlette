@@ -14,9 +14,11 @@ import BookMiniCover from './BookMiniCover';
 
 export default function KoboList({ books, onStatusChange }) {
 
+  // Same change as Fated Reads - oldest-first, so new additions land at
+  // the bottom instead of the top.
   const koboBooks = books
     .filter(book => book.kobo_at)
-    .sort((a, b) => new Date(b.kobo_at) - new Date(a.kobo_at));
+    .sort((a, b) => new Date(a.kobo_at) - new Date(b.kobo_at));
 
   async function updateStatus(id, action) {
     await fetch('/api/books/status', {

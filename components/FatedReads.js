@@ -17,9 +17,11 @@ export default function FatedReads({ books, onStatusChange }) {
 
   const [finishMessage, setFinishMessage] = useState('');
 
+  // Sorted oldest-first now (was newest-first) - so a freshly added book
+  // lands at the bottom of the list instead of jumping to the top.
   const queued = books
     .filter(book => book.queued_at)
-    .sort((a, b) => new Date(b.queued_at) - new Date(a.queued_at));
+    .sort((a, b) => new Date(a.queued_at) - new Date(b.queued_at));
 
   async function updateStatus(id, action, bookTitle) {
 
