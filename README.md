@@ -1,6 +1,6 @@
 # ʚ Readlette ɞ
 
-A whimsical, fairy-court/cottagecore-themed web app that randomly picks a book from my 1250+ book Goodreads to-read shelf. Built as a personal project and portfolio piece.
+A whimsical, fairy-court/cottagecore-themed web app that randomly picks a book from my 1000+ book Goodreads to-read shelf. Built as a personal project and portfolio piece.
 
 **Live at:** [readlette.vercel.app](https://readlette.vercel.app)
 
@@ -9,7 +9,7 @@ A whimsical, fairy-court/cottagecore-themed web app that randomly picks a book f
 - Randomly selects a book from your Goodreads to-read shelf, with filters for genre, decade/year, and author gender
 - Automatically skips ahead in series — if you're mid-way through a series, only the next unread book is eligible, not later entries
 - Lets you save picks to **Thy Fated Reads** (a shortlist for what to read next) or mark them finished on the spot
-- A separate **Kobo Shelf** list for manually tracking what's loaded on an e-reader, plus a search bar to add any book to either list without waiting for the Oracle
+- A separate **Kobo Shelf** list for manually tracking what's loaded on my e-reader, plus a search bar to add any book to either list without waiting for the Oracle
 - Periodic RSS sync ("Royal Messenger Service") to pick up newly-added Goodreads books automatically, plus genre/author-gender enrichment via external lookups
 - Full CSV re-upload support that reconciles shelf changes (finished books, deleted books) back into the app
 
