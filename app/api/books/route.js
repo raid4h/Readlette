@@ -7,6 +7,10 @@
 // simpler and snappier to just filter and pick randomly in the browser (see
 // app/page.js). That also means shuffling again is instant, no server
 // round-trip needed.
+//
+// Note: WHERE shelf = 'to-read' means finished books disappear from this
+// list entirely the moment they're marked read - that's intentional, it's
+// what stops the Oracle from ever re-picking a book you've already finished.
 // =============================================================================
 import { sql } from '../../../lib/db';
 
@@ -18,11 +22,15 @@ export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
-    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at
+    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at, kobo_at
     FROM books
     WHERE shelf = 'to-read'
     ORDER BY title ASC
   `;
+  // ^ added kobo_at above - without it, the Kobo list and search-add
+  // buttons would toggle correctly in the database, but the UI would never
+  // reflect it since this endpoint is the only source of truth the
+  // frontend reads from.
 
   return Response.json({ books: rows });
 }

@@ -890,7 +890,7 @@ input[type="file"]::file-selector-button:hover{
 }
 
 /* ============================================================================
-   Fated Reads sidebar
+   Fated Reads / Kobo sidebar lists
 ============================================================================ */
 
 .fated-list{
@@ -900,9 +900,11 @@ input[type="file"]::file-selector-button:hover{
   display:flex;
   flex-direction:column;
   gap:10px;
+  counter-reset:sidebar-count;
 }
 
 .fated-item{
+  counter-increment:sidebar-count;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -911,6 +913,21 @@ input[type="file"]::file-selector-button:hover{
   border-radius:var(--radius-md);
   background:rgba(255,255,255,.55);
   border:1px solid rgba(215,185,255,.3);
+}
+
+.fated-item::before{
+  content:counter(sidebar-count);
+  flex-shrink:0;
+  width:20px;
+  height:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:rgba(185,140,255,.2);
+  color:var(--ink);
+  font-size:.72rem;
+  font-weight:700;
 }
 
 .fated-item-title{
@@ -950,13 +967,21 @@ input[type="file"]::file-selector-button:hover{
 }
 
 /* ============================================================================
-   Page layout (main content + Fated Reads sidebar)
+   Page layout (main content + sidebar)
 ============================================================================ */
 
 .page-layout{
   display:flex;
   flex-direction:column;
   align-items:center;
+}
+
+.fated-sidebar{
+  width:min(300px,90vw);
+  margin:0 auto 40px;
+  display:flex;
+  flex-direction:column;
+  gap:26px;
 }
 
 @media (min-width:1180px){
@@ -970,7 +995,6 @@ input[type="file"]::file-selector-button:hover{
   }
 
   .fated-sidebar{
-    width:280px;
     flex-shrink:0;
     position:sticky;
     top:40px;
@@ -979,13 +1003,18 @@ input[type="file"]::file-selector-button:hover{
 
 }
 
-.fated-sidebar{
-  width:min(900px,92vw);
-  margin:0 auto 40px;
-}
-
 .fated-save-btn{
   margin-top:18px;
+}
+
+/* ============================================================================
+   Royal Messenger Service band (full width, bottom of page)
+============================================================================ */
+
+.messenger-band{
+  width:min(900px,92vw);
+  margin:0 auto;
+  padding:0 24px 100px;
 }
 
 /* =============================================================================
@@ -1224,6 +1253,77 @@ input[type="file"]::file-selector-button:hover{
 
 }
 
+/* ============================================================================
+   Search-and-add bar (🔍 Summon a Tome by Name)
+============================================================================ */
+
+.search-input{
+  width:100%;
+  margin-top:10px;
+  padding:10px 16px;
+  border-radius:999px;
+  border:2px solid rgba(215,185,255,.35);
+  background:rgba(255,255,255,.75);
+  color:var(--ink);
+  font-family:inherit;
+  font-size:.9rem;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+
+.search-input:focus{
+  border-color:var(--violet);
+  box-shadow:0 0 18px rgba(185,145,255,.25);
+}
+
+.search-results{
+  list-style:none;
+  margin:14px 0 0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height:260px;
+  overflow-y:auto; /* keeps a long match list from blowing up the sidebar */
+}
+
+.search-result-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 14px;
+  border-radius:var(--radius-sm);
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(215,185,255,.3);
+}
+
+/* ============================================================================
+   "Already read" victory banner - used on both the Oracle reveal card and
+   the 🎀 Thy Fated Reads finish button
+============================================================================ */
+
+.fated-finish-banner{
+  margin-top:14px;
+  padding:10px 14px;
+  border-radius:var(--radius-sm);
+  background:rgba(255,217,118,.18);
+  border:1px solid rgba(215,185,255,.3);
+  color:var(--ink);
+  font-weight:600;
+}
+
+/* ============================================================================
+   Side-by-side action buttons on the Oracle reveal card
+============================================================================ */
+
+.book-reveal-actions{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:18px;
+}
 
 /* ============================================================================
    Fairy Court Thinking

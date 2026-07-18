@@ -6,12 +6,11 @@
 //   2. Filters it client-side based on whatever chips are toggled
 //   3. Hands the filtered list to ShuffleCard, which does the actual picking
 //
-// If you haven't imported anything yet (books.length === 0), it shows the
-// CSV upload panel instead of the filters/shuffle UI.
+// Sidebar (right side / stacked below on narrow screens):
+//   🔍 Summon a Tome by Name -> 🎀 Thy Fated Reads -> 📱 Thy Kobo Shelf
 //
-// Layout: main content (filters/shuffle/sync) lives in .app-shell; Thy Fated
-// Reads sits beside it as a sticky sidebar on wide screens, and stacks below
-// it on narrower ones (see .page-layout in globals.css).
+// Royal Messenger Service (SyncPanel) is a separate full-width band at the
+// very bottom of the page, below everything else.
 // =============================================================================
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import UploadCsv from '../components/UploadCsv';
@@ -19,6 +18,8 @@ import SyncPanel from '../components/SyncPanel';
 import FilterPanel from '../components/FilterPanel';
 import ShuffleCard from '../components/ShuffleCard';
 import FatedReads from '../components/FatedReads';
+import KoboList from '../components/KoboList';
+import AddBookSearch from '../components/AddBookSearch';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -30,15 +31,16 @@ const EMPTY_FILTERS = {
 export default function Home() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(null); // NEW: surface fetch failures instead of hanging silently
+  const [loadError, setLoadError] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+
+  // Toggles the CSV re-upload panel on/off, so it's hidden by default once
+  // you already have books, instead of gone forever.
+  const [showReupload, setShowReupload] = useState(false);
 
   const loadBooks = useCallback(async () => {
     setLoadError(null);
     try {
-      // cache: 'no-store' just makes sure the browser itself never serves a
-      // stale copy of this response - belt-and-suspenders alongside the
-      // dynamic = 'force-dynamic' export that the route handler needs.
       const res = await fetch('/api/books', { cache: 'no-store' });
       if (!res.ok) {
         throw new Error(`/api/books returned ${res.status}`);
@@ -46,8 +48,6 @@ export default function Home() {
       const data = await res.json();
       setBooks(data.books || []);
     } catch (err) {
-      // Previously this just threw silently and the UI never updated -
-      // which is exactly what "nothing happens after upload" looks like.
       console.error('Failed to load books:', err);
       setLoadError('The Fairy Court could not reach the Royal Library. Please try again.');
     } finally {
@@ -84,42 +84,73 @@ export default function Home() {
   }, [books, filters]);
 
   return (
-    <div className="page-layout">
+    <>
+      <div className="page-layout">
 
-      <div className="app-shell">
-        <header className="header">
-          <h1>ʚ Readlette ɞ</h1>
-          <p>the Fairy Court hath selected thy next tome.</p>
-        </header>
-        <div className="vine-divider">
-        ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
+        <div className="app-shell">
+          <header className="header">
+            <h1>ʚ Readlette ɞ</h1>
+            <p>the Fairy Court hath selected thy next tome.</p>
+          </header>
+          <div className="vine-divider">
+          ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
+          </div>
+
+          {loading ? (
+            <p className="empty-state">✨ Summoning the Fairy Council...</p>
+          ) : loadError ? (
+            <div className="empty-state">
+              <p>{loadError}</p>
+              <button onClick={loadBooks}>Try again</button>
+            </div>
+          ) : books.length === 0 ? (
+            <UploadCsv onImported={loadBooks} />
+          ) : (
+            <>
+              <FilterPanel books={books} filters={filters} setFilters={setFilters} />
+              <ShuffleCard filteredBooks={filteredBooks} onStatusChange={loadBooks} />
+
+              {/* Reupload toggle - the actual fix for "where's my upload button" */}
+              <div style={{ textAlign: 'center', margin: '30px 0' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowReupload((s) => !s)}
+                >
+                  {showReupload ? '📜 Hide the Scroll' : '📜 Reupload My Shelf'}
+                </button>
+              </div>
+
+              {showReupload && (
+                <UploadCsv
+                  onImported={() => {
+                    loadBooks();
+                    setShowReupload(false);
+                  }}
+                />
+              )}
+            </>
+          )}
         </div>
 
-        {loading ? (
-          <p className="empty-state">✨ Summoning the Fairy Council...</p>
-        ) : loadError ? (
-          // NEW: visible error + retry instead of a silent, indefinite hang
-          <div className="empty-state">
-            <p>{loadError}</p>
-            <button onClick={loadBooks}>Try again</button>
-          </div>
-        ) : books.length === 0 ? (
-          <UploadCsv onImported={loadBooks} />
-        ) : (
-          <>
-            <FilterPanel books={books} filters={filters} setFilters={setFilters} />
-            <ShuffleCard filteredBooks={filteredBooks} onStatusChange={loadBooks} />
-            <SyncPanel books={books} onDataChanged={loadBooks} />
-          </>
+        {!loading && !loadError && books.length > 0 && (
+          <aside className="fated-sidebar">
+            {/* Sits on top since it can feed either list below it */}
+            <AddBookSearch books={books} onStatusChange={loadBooks} />
+
+            <FatedReads books={books} onStatusChange={loadBooks} />
+
+            <KoboList books={books} onStatusChange={loadBooks} />
+          </aside>
         )}
+
       </div>
 
+      {/* Full-width band, always last on the page */}
       {!loading && !loadError && books.length > 0 && (
-        <aside className="fated-sidebar">
-          <FatedReads books={books} onStatusChange={loadBooks} />
-        </aside>
+        <div className="messenger-band">
+          <SyncPanel books={books} onDataChanged={loadBooks} />
+        </div>
       )}
-
-    </div>
+    </>
   );
 }
