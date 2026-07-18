@@ -41,7 +41,18 @@ export default function FatedReads({ books, onStatusChange }) {
   return (
     <div className="card fated-reads">
 
-      <h2>🎀 Thy Fated Reads</h2>
+    <div className="court-label">
+        ✦ ROYAL WAITING CHAMBER ✦
+    </div>
+
+    <h2 className="court-title">
+        Thy Fated Reads
+    </h2>
+
+    <p className="court-subtitle">
+        The Fairy Court awaiteth thy diligence.
+        These decrees remain binding until fulfilled.
+    </p>
 
       {finishMessage && (
         <p className="hint fated-finish-banner">
@@ -56,7 +67,7 @@ export default function FatedReads({ books, onStatusChange }) {
       ) : (
         <>
           <p className="hint">
-            The threads of fate thou hast already chosen...
+            The Royal Archivists have reserved these tomes especially for thee.
           </p>
 
           <ul className="fated-list">
@@ -82,7 +93,7 @@ export default function FatedReads({ books, onStatusChange }) {
                     title="Finished this tome!"
                     onClick={() => updateStatus(book.id, 'finish', book.title)}
                   >
-                    ✅
+                    👑
                   </button>
 
                   <button
@@ -91,7 +102,7 @@ export default function FatedReads({ books, onStatusChange }) {
                     title="Remove from Fated Reads"
                     onClick={() => updateStatus(book.id, 'unqueue', book.title)}
                   >
-                    💔
+                    🕊️
                   </button>
 
                 </div>

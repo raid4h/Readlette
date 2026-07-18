@@ -47,6 +47,10 @@
 
   --success:#67a96c;
 
+  --wine:#7b4a6b;
+
+  --lilac:#d8c3ff;
+
   /* ---------------------------------------------------------
      Shadows
   --------------------------------------------------------- */
@@ -71,6 +75,9 @@
   --radius-md:18px;
 
   --radius-sm:12px;
+
+  --font-display: "Cormorant Garamond", serif;
+  --font-body: "Inter", sans-serif;
 
 }
 
@@ -117,26 +124,6 @@ body {
   overflow-x:hidden;
 
   position:relative;
-}
-
-body::before{
-content:"";
-
-position:fixed;
-
-inset:0;
-
-pointer-events:none;
-
-background-image:
-
-radial-gradient(circle,#ffffff 1.2px,transparent 1.2px);
-
-background-size:120px 120px;
-
-opacity:.45;
-
-animation: fairyDust 30s linear infinite;
 }
 
 /* ============================================================================
@@ -297,6 +284,8 @@ img{
 
       0 0 16px rgba(255,255,255,.6);
 
+  animation:floatDivider 5s ease-in-out infinite;
+
 }
 
 .header p{
@@ -352,6 +341,7 @@ img{
 .card{
 background:rgba(255,255,255,.72);
 backdrop-filter:blur(18px);
+-webkit-backdrop-filter: blur(18px);
 border:1px solid rgba(255,255,255,.8);
 border-radius:28px;
 padding:30px;
@@ -363,36 +353,7 @@ box-shadow:
 transition:
 transform .25s,
 box-shadow .25s;
-}
-
-.card::before{
-
-content:"";
-
-position:absolute;
-
-top:0;
-
-left:0;
-
-right:0;
-
-height:3px;
-
-background:linear-gradient(
-
-90deg,
-
-#ffe7f6,
-
-#f3d6ff,
-
-#fff3c2,
-
-#ffe7f6
-
-);
-
+animation: fadeIn .5s ease;
 }
 
 .card:hover{
@@ -581,6 +542,7 @@ box-shadow:
       2px solid rgba(185,140,255,.25);
 
   backdrop-filter:blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
 }
 
@@ -590,55 +552,6 @@ box-shadow:
 
       rgba(255,255,255,.82);
 
-}
-
-
-/* ============================================================================
-   Filter groups
-============================================================================ */
-
-.filter-section{
-
-  margin-top:28px;
-
-}
-
-.filter-title{
-
-  margin:
-
-      0 0 14px;
-
-  font-size:1rem;
-
-  font-weight:700;
-
-  color:var(--ink);
-
-  font-family:var(--font-display);
-
-}
-
-/* ============================================================================
-   About / footer box
-============================================================================ */
-
-.about-footer{
-  width:min(900px,92vw);
-  margin:0 auto;
-  padding:0 24px 100px;
-}
-
-.about-footer-card{
-  text-align:center;
-}
-
-.about-footer-links{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:12px;
-  margin-top:18px;
 }
 
 /* ============================================================================
@@ -812,7 +725,9 @@ box-shadow:
 
 .chip:hover{
 
-transform:translateY(-2px);
+transform:
+translateY(-2px)
+scale(1.03);
 
 background:#ffe7f8;
 
@@ -1071,14 +986,20 @@ input[type="file"]::file-selector-button:hover{
 
 .fated-item{
   counter-increment:sidebar-count;
+
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  padding:12px 16px;
-  border-radius:var(--radius-md);
+
+  padding:10px;
+
+  border-radius:16px;
+
   background:rgba(255,255,255,.55);
   border:1px solid rgba(215,185,255,.3);
+
+  transition:.25s;
 }
 
 .fated-item::before{
@@ -1124,7 +1045,9 @@ input[type="file"]::file-selector-button:hover{
   background:rgba(255,255,255,.7);
   border:2px solid rgba(215,185,255,.35);
   font-size:1rem;
-  transition:transform .18s, background .18s;
+  transition:
+  transform .25s,
+  background .25s;
 }
 
 .fated-icon-btn:hover{
@@ -1416,39 +1339,6 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 }
 
-/* ============================================================================
-   Search-and-add bar (🔍 Summon a Tome by Name)
-============================================================================ */
-
-.search-input{
-  width:100%;
-  margin-top:10px;
-  padding:10px 16px;
-  border-radius:999px;
-  border:2px solid rgba(215,185,255,.35);
-  background:rgba(255,255,255,.75);
-  color:var(--ink);
-  font-family:inherit;
-  font-size:.9rem;
-  outline:none;
-  transition:border-color .2s, box-shadow .2s;
-}
-
-.search-input:focus{
-  border-color:var(--violet);
-  box-shadow:0 0 18px rgba(185,145,255,.25);
-}
-
-.search-results{
-  list-style:none;
-  margin:14px 0 0;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  max-height:260px;
-  overflow-y:auto; /* keeps a long match list from blowing up the sidebar */
-}
 
 .search-result-item{
   display:flex;
@@ -1479,6 +1369,7 @@ animation:oracleGlow 4s ease-in-out infinite;
   border-radius:4px;
   box-shadow:0 4px 10px rgba(120,80,170,.18);
   flex-shrink:0; /* never let the cover get squished by a long title */
+  display:block;
 }
 
 /* ============================================================================
@@ -1568,11 +1459,31 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 .book-reveal{
 
-    margin-top:26px;
+margin-top:26px;
 
-    animation:
+padding:28px;
 
-        reveal .55s ease;
+border-radius:24px;
+
+background:
+
+linear-gradient(
+180deg,
+rgba(255,252,248,.96),
+rgba(255,245,252,.92)
+);
+
+border:
+
+2px solid rgba(241,211,122,.4);
+
+box-shadow:
+
+0 18px 45px rgba(180,140,255,.15);
+
+animation:
+
+reveal .55s ease;
 
 }
 
@@ -1607,25 +1518,6 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 
 /* ============================================================================
-   Royal decree
-============================================================================ */
-
-.royal-decree{
-
-    font-family:var(--font-display);
-
-    font-size:1.35rem;
-
-    color:var(--ink);
-
-    margin-bottom:14px;
-
-    font-style:italic;
-
-}
-
-
-/* ============================================================================
    Divider
 ============================================================================ */
 
@@ -1645,42 +1537,16 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 
 /* ============================================================================
-   THOU SHALT READ
-============================================================================ */
-
-.thou-shalt{
-
-    margin-bottom:22px;
-
-    font-size:.95rem;
-
-    letter-spacing:.28em;
-
-    color:var(--rose);
-
-    text-transform:uppercase;
-
-}
-
-
-/* ============================================================================
    Book Cover
 ============================================================================ */
 
 .book-cover{
-
     width:170px;
-
     border-radius:18px;
-
     margin:auto;
-
-    box-shadow:
-
-        0 18px 40px rgba(120,80,170,.18);
-
+    box-shadow:0 18px 40px rgba(120,80,170,.18);
     transition:.3s;
-
+    animation:bookFloat 5s ease-in-out infinite;
 }
 
 
@@ -1688,8 +1554,8 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 transform:
 
+translateY(-4px)
 rotate(-2deg)
-
 scale(1.04);
 
 }
@@ -1817,28 +1683,6 @@ a{
 
 
 /* ============================================================================
-   Fancy hover for every card
-============================================================================ */
-
-.card{
-
-    transition:
-        transform .28s ease,
-        box-shadow .28s ease;
-
-}
-
-.card:hover{
-
-    transform:translateY(-4px);
-
-    box-shadow:
-        0 26px 70px rgba(185,145,255,.22);
-
-}
-
-
-/* ============================================================================
    Floating glow behind oracle
 ============================================================================ */
 
@@ -1870,28 +1714,6 @@ a{
 
 }
 
-@keyframes oracleGlow{
-
-    50%{
-
-        transform:scale(1.12);
-
-        opacity:.65;
-
-    }
-
-}
-
-
-/* ============================================================================
-   Gentle floating animation
-============================================================================ */
-
-.book-cover{
-
-    animation:bookFloat 5s ease-in-out infinite;
-
-}
 
 @keyframes bookFloat{
 
@@ -2027,18 +1849,6 @@ a{
 
 }
 
-@keyframes fairyDust{
-
-0%{
-transform:translateY(0px);
-}
-
-100%{
-transform:translateY(-120px);
-}
-
-}
-
 @keyframes oracleGlow{
 
 0%,100%{
@@ -2108,7 +1918,7 @@ box-shadow:
 
     text-align:center;
 
-    color:#87698d;
+    color:var(--ink-light);
 
     margin-bottom:22px;
 
@@ -2256,5 +2066,144 @@ gap:8px;
     line-height:1.6;
 
     opacity:.9;
+
+}
+
+
+.fated-item:hover{
+
+    background:rgba(255,255,255,.45);
+
+    transform:translateX(6px);
+
+}
+
+/* ==========================================================================
+   CURRENTLY READING
+   ========================================================================== */
+
+.currently-reading-status{
+
+    display:inline-block;
+
+    margin-top:.5rem;
+
+    padding:4px 12px;
+
+    border-radius:999px;
+
+    background:linear-gradient(
+        135deg,
+        #ffe7f4,
+        #efe3ff
+    );
+
+    color:var(--wine);
+
+    font-size:.82rem;
+
+    font-weight:700;
+
+    letter-spacing:.04em;
+
+    box-shadow:
+        0 4px 12px rgba(180,120,255,.15);
+
+}
+
+/* ==========================================================================
+   KOBO SHELF
+   ========================================================================== */
+
+.kobo-list .fated-item{
+
+    border-left:4px solid rgba(210,170,255,.35);
+
+}
+
+.kobo-list .fated-item:hover{
+
+    border-left-color:var(--gold);
+
+}
+
+/* ==========================================================================
+   ROYAL ARCHIVES SEARCH
+   ========================================================================== */
+
+.search-input{
+
+    width:100%;
+
+    padding:14px 18px;
+
+    border-radius:999px;
+
+    border:2px solid rgba(200,170,255,.35);
+
+    background:rgba(255,255,255,.75);
+
+    transition:.25s;
+
+    font-family:var(--font-body);
+
+}
+
+.search-input:focus{
+
+    outline:none;
+
+    border-color:var(--lilac);
+
+    box-shadow:
+        0 0 18px rgba(190,150,255,.25);
+
+}
+
+.search-results{
+
+    margin-top:18px;
+
+}
+
+/* ==========================================================================
+   ABOUT FOOTER
+   ========================================================================== */
+
+.about-footer{
+
+    margin-top:80px;
+
+    margin-bottom:40px;
+
+}
+
+.about-footer-card{
+
+    text-align:center;
+
+}
+
+.about-footer-links{
+
+    display:flex;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    gap:14px;
+
+    margin-top:26px;
+
+}
+
+.about-footer-card .hint{
+
+    max-width:700px;
+
+    margin:auto;
+
+    line-height:1.8;
 
 }

@@ -30,11 +30,22 @@ export default function KoboList({ books, onStatusChange }) {
   return (
     <div className="card kobo-list">
 
-      <h2>📱 Thy Kobo Shelf</h2>
+    <div className="court-label">
+    ✦ ENCHANTED TRAVELLING LIBRARY ✦
+    </div>
+
+    <h2 className="court-title">
+        Thy Kobo Shelf
+    </h2>
+
+    <p className="court-subtitle">
+        Tomes prepared for adventures beyond the castle walls.
+    </p>
 
       {koboBooks.length === 0 ? (
         <p className="hint">
-          No tomes marked yet. Use the search below to summon one onto thy Kobo.
+          No enchanted tomes await thy travels.
+          Perhaps the Royal Messenger should deliver one.
         </p>
       ) : (
         <ul className="fated-list">
@@ -60,7 +71,7 @@ export default function KoboList({ books, onStatusChange }) {
                   title="Add to Fated Reads"
                   onClick={() => updateStatus(book.id, 'queue')}
                 >
-                  💌
+                  ✨
                 </button>
 
                 <button
@@ -69,7 +80,7 @@ export default function KoboList({ books, onStatusChange }) {
                   title="Remove from Kobo"
                   onClick={() => updateStatus(book.id, 'unkobo')}
                 >
-                  🗑️
+                  🕊️
                 </button>
 
               </div>

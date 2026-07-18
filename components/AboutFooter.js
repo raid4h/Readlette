@@ -14,13 +14,24 @@ export default function AboutFooter() {
 
       <div className="card about-footer-card">
 
-        <h2>🧚 What is Readlette?</h2>
+      <div className="court-label">
+    ✦ ROYAL RECORD ✦
+      </div>
+
+      <h2 className="court-title">
+          Concerning Readlette 🧚
+      </h2>
+
+      <p className="court-subtitle">
+          A brief account preserved within the Royal Archives.
+      </p>
 
         <p className="hint">
-          Readlette is a personal project with a little Fairy oracle that
-          picks a random book from my 1250+ book Goodreads to-read shelf,
-          with filters for genre, decade, and author gender. Built for
-          personal use and as a portfolio piece with Next.js and Postgres.
+          Readlette is an enchanted librarian disguised as a web application.
+          It consulteth a Fairy Court, issueth absurd royal decrees, and
+          selecteth one unfortunate tome from a rather unreasonable Goodreads
+          collection. Fashioned with Next.js, PostgreSQL, and entirely too much
+          dramatic bureaucracy. Built for personal use.
         </p>
 
         <div className="about-footer-links">
@@ -30,7 +41,7 @@ export default function AboutFooter() {
             rel="noopener noreferrer"
             className="btn btn-secondary"
           >
-            💻 GitHub Repository
+            💻 Royal Blueprints (GitHub Repository)
           </a>
           
             <a href="https://www.goodreads.com/user/show/28064716"
@@ -38,13 +49,13 @@ export default function AboutFooter() {
             rel="noopener noreferrer"
             className="btn btn-secondary"
           >
-            📚 Goodreads
+            📚 Royal Library (Goodreads)
           </a>
           
             <a href="mailto:valfrae15@gmail.com"
             className="btn btn-secondary"
           >
-            ✉️ Email me!
+            🕊️ Dispatch a Raven
           </a>
 
         </div>

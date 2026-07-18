@@ -41,7 +41,17 @@ export default function AddBookSearch({ books, onStatusChange }) {
   return (
     <div className="card add-book-search">
 
-      <h2>🔍 Summon a Tome by Name</h2>
+    <div className="court-label">
+    ✦ ROYAL ARCHIVES ✦
+    </div>
+
+    <h2 className="court-title">
+        Summon a Tome
+    </h2>
+
+    <p className="court-subtitle">
+        Speak but a fragment of its title, and the Royal Librarians shall seek it.
+    </p>
 
       <p className="hint">
         Already know what's next? Search thy full library directly.
@@ -50,7 +60,7 @@ export default function AddBookSearch({ books, onStatusChange }) {
       <input
         type="text"
         className="search-input"
-        placeholder="Type a title..."
+        placeholder="Whisper the name of a tome..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -79,7 +89,7 @@ export default function AddBookSearch({ books, onStatusChange }) {
                   title="Add to Fated Reads"
                   onClick={() => updateStatus(book.id, 'queue')}
                 >
-                  💌
+                  🎀
                 </button>
 
                 <button
@@ -97,7 +107,7 @@ export default function AddBookSearch({ books, onStatusChange }) {
                   title="Remove from Library"
                   onClick={() => updateStatus(book.id, 'remove')}
                 >
-                  🗑️
+                  🚫
                 </button>
 
               </div>
@@ -110,7 +120,7 @@ export default function AddBookSearch({ books, onStatusChange }) {
       )}
 
       {query.trim().length >= 2 && matches.length === 0 && (
-        <p className="hint">No tomes found by that name in thy library.</p>
+        <p className="hint">The Royal Librarians searched every enchanted shelf and found nothing.</p>
       )}
 
     </div>

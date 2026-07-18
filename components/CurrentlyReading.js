@@ -30,7 +30,17 @@ export default function CurrentlyReading() {
   return (
     <div className="card currently-reading-banner">
 
-      <h2>📖 What Thou Art Presently Reading</h2>
+    <div className="court-label">
+    ✦ ROYAL READING CHAMBER ✦
+    </div>
+
+    <h2 className="court-title">
+        What Thou Art Presently Reading
+    </h2>
+
+    <p className="court-subtitle">
+        May the Fairy Court grant thee sufficient emotional resilience.
+    </p>
 
       <div className="currently-reading-list">
         {books.map(book => {
@@ -50,6 +60,9 @@ export default function CurrentlyReading() {
 
               <p className="currently-reading-title">{book.title}</p>
               <p className="currently-reading-author">by {book.author}</p>
+              <p className="currently-reading-status">
+                  📖 Currently under Royal Observation
+              </p>
 
               {(book.genres || []).length > 0 && (
                 <div className="book-tags">
