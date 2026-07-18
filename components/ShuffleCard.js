@@ -181,9 +181,10 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
       </div>
 
+      {/* Splits the word at the shared "destin" stem so plural becomes
+      "destinies" instead of wrongly appending "ies" onto "destiny" */}
       <p className="hint">
-        {filteredBooks.length} possible destiny
-        {filteredBooks.length === 1 ? "" : "ies"}
+        {filteredBooks.length} possible destin{filteredBooks.length === 1 ? "y" : "ies"}
       </p>
 
       {filteredBooks.length === 0 && (

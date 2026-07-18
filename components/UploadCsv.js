@@ -3,10 +3,15 @@
 // ============================================================================
 // Readlette
 // ----------------------------------------------------------------------------
-// The first-time setup.
+// The first-time (and reupload) flow.
 //
-// Present thy Goodreads library unto the Fairy Court.
-// The Court shall inspect thy collection and admit it into the Royal Library.
+// Three steps:
+//   1. Parse the CSV, get the full book list + count up front.
+//   2. Upsert in batches of 150, updating a progress bar as we go.
+//   3. NEW: reconcile - tell the server every goodreads_id that WAS in this
+//      export, so it can retire any book in the database that's now
+//      missing entirely (i.e. you deleted it on Goodreads, not just moved
+//      shelves - see /api/import-csv/reconcile/route.js).
 // ============================================================================
 
 import { useState } from 'react';
@@ -25,7 +30,7 @@ export default function UploadCsv({ onImported }) {
 
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
-  const [progress, setProgress] = useState(null); // { done, total }
+  const [progress, setProgress] = useState(null);
 
   async function handleFileChange(event) {
 
@@ -94,12 +99,37 @@ export default function UploadCsv({ onImported }) {
 
       }
 
+      // Step 3: NEW - reconcile against the full list of IDs in THIS
+      // export, so books you deleted entirely from Goodreads get retired
+      // here instead of lingering forever.
+      let removed = 0;
+      try {
+        const ids = allBooks.map(b => b.goodreadsId);
+        const reconcileRes = await fetch('/api/import-csv/reconcile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ goodreadsIds: ids }),
+        });
+        const reconcileData = await reconcileRes.json();
+        if (reconcileRes.ok) {
+          removed = reconcileData.removed;
+        }
+        // If reconcile itself fails, we deliberately don't treat the whole
+        // upload as failed - the import already succeeded, this step is a
+        // bonus cleanup pass, not required for the import to "count."
+      } catch {
+        // Same reasoning - swallow reconcile-specific errors quietly.
+      }
+
       setStatus('done');
 
       setMessage(
         `${randomItem(uploadMessages)}
 
-📚 ${imported} tomes have been reconciled with the Royal Archives.`
+📚 ${imported} tomes have been reconciled with the Royal Archives.` +
+        (removed > 0
+          ? `\n🗑️ ${removed} tome${removed === 1 ? '' : 's'} banished, having vanished from thy Goodreads shelf entirely.`
+          : '')
       );
 
       onImported?.();
