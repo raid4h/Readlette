@@ -1018,24 +1018,33 @@ input[type="file"]::file-selector-button:hover{
 }
 
 .fated-item-title{
-  margin:0;
-  font-weight:700;
-  color:var(--ink);
-  font-size:.92rem;
+    margin:0;
 
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+    font-weight:700;
+
+    color:var(--ink);
+
+    line-height:1.35;
+
+    white-space:normal;
+
+    overflow:visible;
+
+    word-break:break-word;
 }
 
 .fated-item-author{
-  margin:2px 0 0;
-  color:var(--ink-light);
-  font-size:.8rem;
+    margin-top:4px;
 
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+    color:var(--ink-light);
+
+    line-height:1.35;
+
+    white-space:normal;
+
+    overflow:visible;
+
+    word-break:break-word;
 }
 
 .fated-item-actions{
@@ -1368,17 +1377,23 @@ animation:oracleGlow 4s ease-in-out infinite;
 ============================================================================ */
 
 .fated-item-info{
-  display:flex;
-  align-items:flex-start;
-  gap:12px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
 
-  flex:1;
-  min-width:0;
+    flex:1;
+
+    min-width:0;
 }
 
 .fated-item-text{
-  flex:1;
-  min-width:0;
+    flex:1 1 auto;
+
+    min-width:0;
+
+    display:flex;
+
+    flex-direction:column;
 }
 
 .book-mini-cover{
