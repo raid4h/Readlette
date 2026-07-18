@@ -1023,9 +1023,9 @@ input[type="file"]::file-selector-button:hover{
   color:var(--ink);
   font-size:.92rem;
 
+  white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  white-space:nowrap;
 }
 
 .fated-item-author{
@@ -1033,9 +1033,9 @@ input[type="file"]::file-selector-button:hover{
   color:var(--ink-light);
   font-size:.8rem;
 
+  white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  white-space:nowrap;
 }
 
 .fated-item-actions{
@@ -1349,15 +1349,19 @@ animation:oracleGlow 4s ease-in-out infinite;
 
 
 .search-result-item{
-  display:flex;
+  display:grid;
+  grid-template-columns: minmax(0,1fr) auto;
   align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  min-width:0;
+  gap:14px;
+
   padding:10px 14px;
+
   border-radius:var(--radius-sm);
+
   background:rgba(255,255,255,.55);
   border:1px solid rgba(215,185,255,.3);
+
+  list-style:none;
 }
 
 /* ============================================================================
@@ -1365,10 +1369,12 @@ animation:oracleGlow 4s ease-in-out infinite;
 ============================================================================ */
 
 .fated-item-info{
-  display:flex;
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
   align-items:center;
-  gap:10px;
-  min-width:0; /* lets long titles truncate instead of overflowing the row */
+  gap:12px;
+
+  min-width:0;
 }
 
 .fated-item-text{
@@ -2176,8 +2182,12 @@ gap:8px;
 
 .search-results{
   list-style:none;
-  margin-top:18px;
   padding:0;
+  margin:18px 0 0;
+
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
 /* ==========================================================================
