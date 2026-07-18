@@ -5,13 +5,13 @@
 // ----------------------------------------------------------------------------
 // 📖 What Thou Art Presently Reading
 //
-// Pulls from the separate /api/currently-reading endpoint. Renders nothing
-// at all (not even an empty card) if there's nothing on that shelf right
-// now, so it doesn't clutter the page when it's not relevant.
+// Now shows a real cover (via Open Library, same as everywhere else) and
+// genre tags (reusing the .book-tags styling from the Oracle reveal),
+// instead of just a bare title.
 // ============================================================================
 
 import { useState, useEffect } from 'react';
-import BookMiniCover from './BookMiniCover';
+import { getCoverUrl } from '../lib/covers';
 
 export default function CurrentlyReading() {
   const [books, setBooks] = useState([]);
@@ -25,7 +25,6 @@ export default function CurrentlyReading() {
       .finally(() => setLoaded(true));
   }, []);
 
-  // Nothing to show yet, or nothing on this shelf at all - render nothing.
   if (!loaded || books.length === 0) return null;
 
   return (
@@ -34,12 +33,37 @@ export default function CurrentlyReading() {
       <h2>📖 What Thou Art Presently Reading</h2>
 
       <div className="currently-reading-list">
-        {books.map(book => (
-          <div key={book.id} className="currently-reading-item">
-            <BookMiniCover book={book} />
-            <span>{book.title}</span>
-          </div>
-        ))}
+        {books.map(book => {
+          // 'M' size - bigger than the tiny list thumbnails elsewhere,
+          // since this only ever shows 1-2 books at a time.
+          const cover = getCoverUrl(book, 'M');
+
+          return (
+            <div key={book.id} className="currently-reading-item">
+
+              {cover && (
+                <img
+                  className="currently-reading-cover"
+                  src={cover}
+                  alt={book.title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
+
+              <div className="currently-reading-info">
+                <p className="currently-reading-title">{book.title}</p>
+                <p className="currently-reading-author">by {book.author}</p>
+
+                {(book.genres || []).length > 0 && (
+                  <div className="book-tags">
+                    {book.genres.map(g => <span key={g}>{g}</span>)}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          );
+        })}
       </div>
 
     </div>

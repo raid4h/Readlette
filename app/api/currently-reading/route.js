@@ -13,7 +13,7 @@ export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
-    SELECT id, title, author, isbn, isbn13
+    SELECT id, title, author, isbn, isbn13, genres
     FROM books
     WHERE shelf = 'currently-reading'
     ORDER BY title ASC

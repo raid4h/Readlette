@@ -44,7 +44,7 @@ export default function SeriesProgress({ onStatusChange }) {
 
       <p className="hint">Series thou hast already begun...</p>
 
-      <ul className="fated-list">
+      <ul className="fated-list series-progress-scroll">
 
         {series.map(s => {
           const percent = Math.round((s.readCount / s.total) * 100);

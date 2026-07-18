@@ -3,10 +3,15 @@
 // =============================================================================
 // Readlette
 // ----------------------------------------------------------------------------
-// The heart of the app. Two draw modes now:
-//   - Consult the Oracle: the original single big reveal
-//   - 🔮 Draw Three Fates: pulls 3 unique books, shown as a tarot-style
-//     spread, each independently saveable to Fated Reads or markable read
+// Two draw modes:
+//   - Consult the Oracle: single big reveal
+//   - 🔮 Draw Three Fates: 3-book tarot-style spread
+//
+// Each revealed book (single or in the spread) now has three actions:
+//   💌 Save/unsave to Fated Reads
+//   ✅ Mark already read
+//   🗑️ NEW: remove from the database entirely (shelf -> 'removed'),
+//      for books you've decided you don't want to read at all
 // =============================================================================
 
 import { useState, useEffect } from 'react';
@@ -35,24 +40,34 @@ function randomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-// Picks `count` unique random books from a pool. A simple full shuffle is
-// plenty fast for pool sizes in the hundreds/low thousands we're dealing
-// with here - no need for anything fancier.
 function pickUniqueBooks(pool, count) {
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
+// Shared helper for the status API call - all three actions (queue/finish/
+// remove) hit the same endpoint, just with a different action string.
+async function callStatus(id, action) {
+  await fetch('/api/books/status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, action }),
+  });
+}
+
 export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [pickedBook, setPickedBook] = useState(null);
-  const [threeFates, setThreeFates] = useState(null); // array of 3 books, or null
+  const [threeFates, setThreeFates] = useState(null);
 
   const [shuffleCount, setShuffleCount] = useState(0);
   const [sparkles, setSparkles] = useState([]);
   const [thinking, setThinking] = useState(false);
   const [thinkingMessage, setThinkingMessage] = useState("");
   const [decreeTitle, setDecreeTitle] = useState("");
-  const [finishMessage, setFinishMessage] = useState("");
+
+  // Shared banner text for "already read" / "removed" confirmations,
+  // whichever action fires last.
+  const [actionMessage, setActionMessage] = useState("");
 
   async function runDeliberation() {
     setSparkles(randomSparkles());
@@ -67,8 +82,8 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
     setThinking(true);
     setPickedBook(null);
-    setThreeFates(null); // clear the other mode's result
-    setFinishMessage("");
+    setThreeFates(null);
+    setActionMessage("");
 
     await runDeliberation();
 
@@ -85,9 +100,9 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     if (filteredBooks.length === 0 || thinking) return;
 
     setThinking(true);
-    setPickedBook(null); // clear the other mode's result
+    setPickedBook(null);
     setThreeFates(null);
-    setFinishMessage("");
+    setActionMessage("");
 
     await runDeliberation();
 
@@ -100,7 +115,7 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     setThinking(false);
   }
 
-  // --- Single-pick actions (unchanged from before) ---
+  // --- Single-pick actions ---
 
   async function toggleFated() {
     if (!pickedBook) return;
@@ -112,34 +127,43 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
       queued_at: isQueued ? null : new Date().toISOString(),
     }));
 
-    await fetch('/api/books/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: pickedBook.id, action }),
-    });
-
+    await callStatus(pickedBook.id, action);
     onStatusChange?.();
   }
 
   async function markFinished() {
     if (!pickedBook) return;
 
-    setFinishMessage(
+    setActionMessage(
       "It is decreed: this tome is VANQUISHED. Onward to thy next unread victim."
     );
 
+    const id = pickedBook.id;
     setPickedBook(prev => ({ ...prev, shelf: 'read', queued_at: null }));
 
-    await fetch('/api/books/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: pickedBook.id, action: 'finish' }),
-    });
-
+    await callStatus(id, 'finish');
     onStatusChange?.();
   }
 
-  // --- Tarot-spread actions (same logic, applied to one card by index) ---
+  // NEW: remove the currently revealed book entirely. Clears the reveal
+  // since there's nothing left to show - the book is gone from the
+  // to-read shelf for good (shelf -> 'removed').
+  async function removeBook() {
+    if (!pickedBook) return;
+
+    const title = pickedBook.title;
+    const id = pickedBook.id;
+
+    setActionMessage(
+      `📕 "${title}" — The Court hath decreed this tome BANISHED from the Royal Archives, as though it never existed at all.`
+    );
+    setPickedBook(null); // hide the reveal - nothing left to act on
+
+    await callStatus(id, 'remove');
+    onStatusChange?.();
+  }
+
+  // --- Tarot-spread actions (same three, applied to one card by index) ---
 
   async function toggleFatedInSpread(index) {
     const book = threeFates[index];
@@ -152,19 +176,14 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
       )
     );
 
-    await fetch('/api/books/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: book.id, action }),
-    });
-
+    await callStatus(book.id, action);
     onStatusChange?.();
   }
 
   async function markFinishedInSpread(index) {
     const book = threeFates[index];
 
-    setFinishMessage(
+    setActionMessage(
       "It is decreed: this tome is VANQUISHED. Onward to thy next unread victim."
     );
 
@@ -172,12 +191,22 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
       prev.map((b, i) => (i === index ? { ...b, shelf: 'read', queued_at: null } : b))
     );
 
-    await fetch('/api/books/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: book.id, action: 'finish' }),
-    });
+    await callStatus(book.id, 'finish');
+    onStatusChange?.();
+  }
 
+  // NEW: remove one card from the spread. The other cards stay - only
+  // this one drops out (array is filtered, not just marked).
+  async function removeFromSpread(index) {
+    const book = threeFates[index];
+
+    setActionMessage(
+      `📕 "${book.title}" — The Court hath decreed this tome BANISHED from the Royal Archives, as though it never existed at all.`
+    );
+
+    setThreeFates(prev => prev.filter((_, i) => i !== index));
+
+    await callStatus(book.id, 'remove');
     onStatusChange?.();
   }
 
@@ -215,7 +244,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
       </div>
 
-      {/* NEW: secondary draw mode, sits just below the main button */}
       <button
         type="button"
         className="btn btn-secondary draw-three-btn"
@@ -279,12 +307,17 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
                 ✅ 'Tis Already Read
               </button>
             )}
+
+            {/* NEW */}
+            <button type="button" className="btn btn-secondary fated-save-btn" onClick={removeBook}>
+              🗑️ Not Interested
+            </button>
           </div>
 
         </div>
       )}
 
-      {/* --- NEW: Three Fates tarot spread --- */}
+      {/* --- Three Fates tarot spread --- */}
       {threeFates && (
         <div className="book-reveal">
 
@@ -332,6 +365,16 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
                         ✅
                       </button>
                     )}
+
+                    {/* NEW */}
+                    <button
+                      type="button"
+                      className="fated-icon-btn"
+                      title="Not interested - remove from library"
+                      onClick={() => removeFromSpread(i)}
+                    >
+                      🗑️
+                    </button>
                   </div>
 
                 </div>
@@ -342,9 +385,8 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
         </div>
       )}
 
-      {/* Shared banner for both modes */}
-      {finishMessage && (
-        <p className="hint fated-finish-banner">{finishMessage}</p>
+      {actionMessage && (
+        <p className="hint fated-finish-banner">{actionMessage}</p>
       )}
 
     </div>

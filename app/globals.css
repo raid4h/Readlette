@@ -612,23 +612,46 @@ img{
   text-align:center;
 }
 
+/* ============================================================================
+   Currently Reading - cover + genre tags layout
+============================================================================ */
+
 .currently-reading-list{
   display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:14px;
+  flex-direction:column;
+  gap:16px;
   margin-top:14px;
 }
 
 .currently-reading-item{
   display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(255,255,255,.6);
-  border:1px solid rgba(215,185,255,.3);
-  font-size:.85rem;
+  align-items:flex-start;
+  gap:14px;
+  text-align:left;
+}
+
+.currently-reading-cover{
+  width:64px;
+  border-radius:8px;
+  flex-shrink:0;
+  box-shadow:0 8px 18px rgba(120,80,170,.2);
+}
+
+.currently-reading-info{
+  min-width:0;
+}
+
+.currently-reading-title{
+  margin:0;
+  font-weight:700;
+  color:var(--ink);
+  font-size:.95rem;
+}
+
+.currently-reading-author{
+  margin:2px 0 8px;
+  color:var(--ink-light);
+  font-size:.82rem;
 }
 
 /* ============================================================================
@@ -680,6 +703,17 @@ img{
   justify-content:space-between;
   gap:8px;
   margin-top:4px;
+}
+
+/* ============================================================================
+   Series Progress - internal scroll so a long list can't push the rest of
+   the sidebar/page down
+============================================================================ */
+
+.series-progress-scroll{
+  max-height:360px;
+  overflow-y:auto;
+  padding-right:4px; /* room for the scrollbar so it doesn't overlap content */
 }
 
 /* ============================================================================
