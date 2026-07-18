@@ -1022,12 +1022,20 @@ input[type="file"]::file-selector-button:hover{
   font-weight:700;
   color:var(--ink);
   font-size:.92rem;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .fated-item-author{
   margin:2px 0 0;
   color:var(--ink-light);
   font-size:.8rem;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .fated-item-actions{
@@ -1345,6 +1353,7 @@ animation:oracleGlow 4s ease-in-out infinite;
   align-items:center;
   justify-content:space-between;
   gap:12px;
+  min-width:0;
   padding:10px 14px;
   border-radius:var(--radius-sm);
   background:rgba(255,255,255,.55);
@@ -1360,6 +1369,11 @@ animation:oracleGlow 4s ease-in-out infinite;
   align-items:center;
   gap:10px;
   min-width:0; /* lets long titles truncate instead of overflowing the row */
+}
+
+.fated-item-text{
+  flex:1;
+  min-width:0;
 }
 
 .book-mini-cover{
@@ -2161,9 +2175,9 @@ gap:8px;
 }
 
 .search-results{
-
-    margin-top:18px;
-
+  list-style:none;
+  margin-top:18px;
+  padding:0;
 }
 
 /* ==========================================================================

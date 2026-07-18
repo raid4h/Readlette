@@ -74,11 +74,21 @@ export default function AddBookSearch({ books, onStatusChange }) {
 
               {/* NEW: cover thumbnail */}
               <div className="fated-item-info">
+
                 <BookMiniCover book={book} />
-                <div>
-                  <p className="fated-item-title">{book.title}</p>
-                  <p className="fated-item-author">{book.author}</p>
+
+                <div className="fated-item-text">
+
+                  <p className="fated-item-title">
+                    {book.title}
+                  </p>
+
+                  <p className="fated-item-author">
+                    {book.author}
+                  </p>
+
                 </div>
+
               </div>
 
               <div className="fated-item-actions">
