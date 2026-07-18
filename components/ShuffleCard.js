@@ -7,11 +7,16 @@
 //   - Consult the Oracle: single big reveal
 //   - 🔮 Draw Three Fates: 3-book tarot-style spread
 //
-// Each revealed book (single or in the spread) now has three actions:
-//   💌 Save/unsave to Fated Reads
-//   ✅ Mark already read
-//   🗑️ NEW: remove from the database entirely (shelf -> 'removed'),
-//      for books you've decided you don't want to read at all
+// FIXED THIS PASS (after a UI-only edit elsewhere had unintentionally
+// broken three things in the single-reveal block):
+//   1. CRASH: court-message read royalDecrees.length directly during
+//      render. If royalDecrees ever comes through undefined, that throws
+//      and takes down the whole page (no error boundary catches it). Now
+//      picked once per shuffle into state, with a safe fallback.
+//   2. Cover was reading pickedBook.cover_url (always null - the DB never
+//      stores this) instead of the computed ISBN-based coverSrc. Restored.
+//   3. The 💌/✅/🗑️ action buttons had been dropped from the single
+//      reveal entirely. Restored, styled to sit with the new layout.
 // =============================================================================
 
 import { useState, useEffect } from 'react';
@@ -40,13 +45,19 @@ function randomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+// NEW: guarded version of randomItem specifically for court-message.
+// Never throws, even if royalDecrees turns out to be undefined, empty, or
+// not an array at all - returns '' instead, which just renders nothing.
+function safeRandomItem(array) {
+  if (!Array.isArray(array) || array.length === 0) return '';
+  return array[Math.floor(Math.random() * array.length)];
+}
+
 function pickUniqueBooks(pool, count) {
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
-// Shared helper for the status API call - all three actions (queue/finish/
-// remove) hit the same endpoint, just with a different action string.
 async function callStatus(id, action) {
   await fetch('/api/books/status', {
     method: 'POST',
@@ -65,8 +76,13 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [thinkingMessage, setThinkingMessage] = useState("");
   const [decreeTitle, setDecreeTitle] = useState("");
 
-  // Shared banner text for "already read" / "removed" confirmations,
-  // whichever action fires last.
+  // NEW: the italicized court-message line, now picked once per shuffle
+  // and stored in state - same pattern as decreeTitle - instead of being
+  // recomputed live inside JSX on every render (which was both the crash
+  // source and would have re-randomized on every unrelated re-render,
+  // e.g. every time you clicked a button).
+  const [courtMessage, setCourtMessage] = useState("");
+
   const [actionMessage, setActionMessage] = useState("");
 
   async function runDeliberation() {
@@ -91,6 +107,7 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
     setPickedBook(choice);
     setDecreeTitle(decreeTitles[Math.floor(Math.random() * decreeTitles.length)]);
+    setCourtMessage(safeRandomItem(royalDecrees)); // NEW: picked once here, safely
     setSparkles(randomSparkles());
     setShuffleCount(n => n + 1);
     setThinking(false);
@@ -145,9 +162,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
-  // NEW: remove the currently revealed book entirely. Clears the reveal
-  // since there's nothing left to show - the book is gone from the
-  // to-read shelf for good (shelf -> 'removed').
   async function removeBook() {
     if (!pickedBook) return;
 
@@ -157,13 +171,13 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     setActionMessage(
       `📕 "${title}" — The Court hath decreed this tome BANISHED from the Royal Archives, as though it never existed at all.`
     );
-    setPickedBook(null); // hide the reveal - nothing left to act on
+    setPickedBook(null);
 
     await callStatus(id, 'remove');
     onStatusChange?.();
   }
 
-  // --- Tarot-spread actions (same three, applied to one card by index) ---
+  // --- Tarot-spread actions (unchanged - this path was working fine) ---
 
   async function toggleFatedInSpread(index) {
     const book = threeFates[index];
@@ -195,8 +209,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
-  // NEW: remove one card from the spread. The other cards stay - only
-  // this one drops out (array is filtered, not just marked).
   async function removeFromSpread(index) {
     const book = threeFates[index];
 
@@ -210,6 +222,9 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
+  // Restored: this builds the cover from ISBN via Open Library, same as
+  // everywhere else in the app - NOT pickedBook.cover_url, which is
+  // always null.
   const coverSrc = pickedBook ? getCoverUrl(pickedBook, 'L') : null;
 
   return (
@@ -291,22 +306,27 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
             THOU SHALT READ...
           </h2>
 
-          <p className="court-message">
-            {
-              royalDecrees[
-                Math.floor(Math.random() * royalDecrees.length)
-              ]
-            }
-          </p>
+          {/* FIXED: was reading royalDecrees.length live during render,
+              which crashed if royalDecrees was undefined. Now reads from
+              state, set safely once per shuffle above. Only renders the
+              paragraph at all if there's actually a message to show. */}
+          {courtMessage && (
+            <p className="court-message">
+              {courtMessage}
+            </p>
+          )}
 
-          {pickedBook.cover_url && (
-
+          {/* FIXED: was pickedBook.cover_url (always null in the DB).
+              Now uses coverSrc, built from ISBN via Open Library, same
+              as the tarot spread and every list view. Hides gracefully
+              on 404 instead of showing a broken-image icon. */}
+          {coverSrc && (
             <img
               className="book-cover"
-              src={pickedBook.cover_url}
+              src={coverSrc}
               alt={pickedBook.title}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
-
           )}
 
           <p className="book-title">
@@ -331,6 +351,40 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
           </div>
 
+          {/* RESTORED: these three buttons existed before and were
+              dropped during the UI edit - toggleFated/markFinished/
+              removeBook were still defined in this file, just no longer
+              called from anywhere. */}
+          <div className="book-reveal-actions">
+
+            <button
+              type="button"
+              className="btn btn-secondary fated-save-btn"
+              onClick={toggleFated}
+            >
+              {pickedBook.queued_at ? '💔 Remove from Fated Reads' : '💌 Save to Fated Reads'}
+            </button>
+
+            {pickedBook.shelf !== 'read' && (
+              <button
+                type="button"
+                className="btn btn-secondary fated-save-btn"
+                onClick={markFinished}
+              >
+                ✅ 'Tis Already Read
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btn btn-secondary fated-save-btn"
+              onClick={removeBook}
+            >
+              🗑️ Not Interested
+            </button>
+
+          </div>
+
           <div className="royal-scroll-bottom">
             ✦════════════════════✦
           </div>
@@ -338,8 +392,8 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
         </div>
 
       )}
-      
-      {/* --- Three Fates tarot spread --- */}
+
+      {/* --- Three Fates tarot spread (unchanged - this was working) --- */}
       {threeFates && (
         <div className="book-reveal">
 
@@ -388,7 +442,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
                       </button>
                     )}
 
-                    {/* NEW */}
                     <button
                       type="button"
                       className="fated-icon-btn"

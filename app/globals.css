@@ -1096,9 +1096,10 @@ input[type="file"]::file-selector-button:hover{
   .page-layout{
     flex-direction:row;
     align-items:flex-start;
-    justify-content:center;
+    justify-content:flex-start;
     gap:32px;
     padding:0 24px;
+    min-height:100vh;
   }
 
   .fated-sidebar{
