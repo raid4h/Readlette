@@ -1299,6 +1299,26 @@ input[type="file"]::file-selector-button:hover{
 }
 
 /* ============================================================================
+   Cover thumbnail + text layout inside list rows (search, Fated Reads, Kobo)
+============================================================================ */
+
+.fated-item-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0; /* lets long titles truncate instead of overflowing the row */
+}
+
+.book-mini-cover{
+  width:32px;
+  height:46px;
+  object-fit:cover;
+  border-radius:4px;
+  box-shadow:0 4px 10px rgba(120,80,170,.18);
+  flex-shrink:0; /* never let the cover get squished by a long title */
+}
+
+/* ============================================================================
    "Already read" victory banner - used on both the Oracle reveal card and
    the 🎀 Thy Fated Reads finish button
 ============================================================================ */

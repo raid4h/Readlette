@@ -7,19 +7,14 @@
 //
 // A little shelf of books the Oracle has already chosen for you, saved to
 // read next - so you don't lose the thread between shuffles.
-//
-// NEW: finishing a book now shows a themed "vanquished" banner. It's kept
-// as its own bit of local state (not tied to the queued-books list) because
-// finishing a book clears queued_at, which means the book disappears from
-// this list the instant the parent refetches - if the banner lived inside
-// the empty/non-empty branching below, it would vanish along with the book.
+// Each row shows a small cover thumbnail via BookMiniCover, when available.
 // ============================================================================
 
 import { useState } from 'react';
+import BookMiniCover from './BookMiniCover';
 
 export default function FatedReads({ books, onStatusChange }) {
 
-  // Text of the "you finished a book!" banner. Empty string = hidden.
   const [finishMessage, setFinishMessage] = useState('');
 
   const queued = books
@@ -28,12 +23,10 @@ export default function FatedReads({ books, onStatusChange }) {
 
   async function updateStatus(id, action, bookTitle) {
 
-    // Only 'finish' gets the celebratory banner - queue/unqueue stay silent.
     if (action === 'finish') {
       setFinishMessage(
         `📖 "${bookTitle}" — It is decreed: this tome is VANQUISHED. Onward to thy next unread victim.`
       );
-      // Auto-clear after 5 seconds so it doesn't sit there forever.
       setTimeout(() => setFinishMessage(''), 5000);
     }
 
@@ -50,7 +43,6 @@ export default function FatedReads({ books, onStatusChange }) {
 
       <h2>🎀 Thy Fated Reads</h2>
 
-      {/* Victory banner - survives even if the list below goes empty */}
       {finishMessage && (
         <p className="hint fated-finish-banner">
           {finishMessage}
@@ -73,9 +65,13 @@ export default function FatedReads({ books, onStatusChange }) {
 
               <li key={book.id} className="fated-item">
 
+                {/* NEW: cover thumbnail sits to the left of title/author */}
                 <div className="fated-item-info">
-                  <p className="fated-item-title">{book.title}</p>
-                  <p className="fated-item-author">{book.author}</p>
+                  <BookMiniCover book={book} />
+                  <div>
+                    <p className="fated-item-title">{book.title}</p>
+                    <p className="fated-item-author">{book.author}</p>
+                  </div>
                 </div>
 
                 <div className="fated-item-actions">

@@ -5,18 +5,15 @@
 // ----------------------------------------------------------------------------
 // 📱 Thy Kobo Shelf
 //
-// Readlette (and Goodreads) has no way to know what's actually loaded on
-// your Kobo - so this list is entirely manual. Books land here only when
-// YOU flag them, either from this list's own search (see AddBookSearch)
-// or from wherever else a "kobo" action gets fired.
-//
-// From here you can promote any book straight into 🎀 Thy Fated Reads when
-// you're ready to actually read it next.
+// Entirely manual - Readlette has no way to know what's actually on your
+// Kobo, so books land here only when you flag them yourself. From here you
+// can promote any book straight into 🎀 Thy Fated Reads.
 // ============================================================================
+
+import BookMiniCover from './BookMiniCover';
 
 export default function KoboList({ books, onStatusChange }) {
 
-  // Books flagged "on my Kobo", most recently flagged first.
   const koboBooks = books
     .filter(book => book.kobo_at)
     .sort((a, b) => new Date(b.kobo_at) - new Date(a.kobo_at));
@@ -46,14 +43,17 @@ export default function KoboList({ books, onStatusChange }) {
 
             <li key={book.id} className="fated-item">
 
+              {/* NEW: cover thumbnail */}
               <div className="fated-item-info">
-                <p className="fated-item-title">{book.title}</p>
-                <p className="fated-item-author">{book.author}</p>
+                <BookMiniCover book={book} />
+                <div>
+                  <p className="fated-item-title">{book.title}</p>
+                  <p className="fated-item-author">{book.author}</p>
+                </div>
               </div>
 
               <div className="fated-item-actions">
 
-                {/* Promote straight into Fated Reads - the button you asked for */}
                 <button
                   type="button"
                   className="fated-icon-btn"

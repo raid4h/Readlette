@@ -8,29 +8,24 @@
 // app/page.js). That also means shuffling again is instant, no server
 // round-trip needed.
 //
-// Note: WHERE shelf = 'to-read' means finished books disappear from this
-// list entirely the moment they're marked read - that's intentional, it's
-// what stops the Oracle from ever re-picking a book you've already finished.
+// Note: WHERE shelf = 'to-read' means finished/removed books disappear from
+// this list entirely the moment they're marked as such.
 // =============================================================================
 import { sql } from '../../../lib/db';
 
-// Without this, Next.js may try to statically cache this route's response at
-// build time - but the book list changes whenever a sync/import/enrich runs,
-// so it always needs to hit the database fresh on every request.
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 export async function GET() {
   const { rows } = await sql`
-    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at, kobo_at
+    SELECT id, title, author, pub_year, cover_url, genres, author_gender, enriched, queued_at, kobo_at, isbn, isbn13
     FROM books
     WHERE shelf = 'to-read'
     ORDER BY title ASC
   `;
-  // ^ added kobo_at above - without it, the Kobo list and search-add
-  // buttons would toggle correctly in the database, but the UI would never
-  // reflect it since this endpoint is the only source of truth the
-  // frontend reads from.
+  // ^ added isbn and isbn13 - the frontend uses these to build a cover
+  // image URL on the fly (see lib/covers.js), since the CSV never gives us
+  // a real cover_url to store.
 
   return Response.json({ books: rows });
 }

@@ -4,7 +4,9 @@
 // The whole app lives on one page. It:
 //   1. Loads your full book list from /api/books once on mount
 //   2. Filters it client-side based on whatever chips are toggled
-//   3. Hands the filtered list to ShuffleCard, which does the actual picking
+//   3. NEW: narrows that further so only the earliest unread book per
+//      series is eligible for the Oracle (see oraclePool below)
+//   4. Hands that narrowed list to ShuffleCard, which does the picking
 //
 // Sidebar (right side / stacked below on narrow screens):
 //   🔍 Summon a Tome by Name -> 🎀 Thy Fated Reads -> 📱 Thy Kobo Shelf
@@ -20,6 +22,7 @@ import ShuffleCard from '../components/ShuffleCard';
 import FatedReads from '../components/FatedReads';
 import KoboList from '../components/KoboList';
 import AddBookSearch from '../components/AddBookSearch';
+import { parseSeriesInfo } from '../lib/seriesUtils';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -33,9 +36,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-
-  // Toggles the CSV re-upload panel on/off, so it's hidden by default once
-  // you already have books, instead of gone forever.
   const [showReupload, setShowReupload] = useState(false);
 
   const loadBooks = useCallback(async () => {
@@ -59,6 +59,7 @@ export default function Home() {
     loadBooks();
   }, [loadBooks]);
 
+  // Your existing genre/decade/gender filters - unchanged.
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
       if (filters.genres.size > 0) {
@@ -82,6 +83,32 @@ export default function Home() {
       return true;
     });
   }, [books, filters]);
+
+  // NEW: from filteredBooks, keep only the earliest unread book per series.
+  // Since /api/books already only returns shelf = 'to-read' books, the
+  // lowest series number remaining IS the next unread entry - we don't
+  // need to know which earlier books you've already finished.
+  const oraclePool = useMemo(() => {
+    const earliestInSeries = new Map(); // seriesName -> lowest number seen
+
+    for (const book of filteredBooks) {
+      const info = parseSeriesInfo(book.title);
+      if (!info) continue; // standalone book, doesn't affect series tracking
+
+      const current = earliestInSeries.get(info.seriesName);
+      if (current === undefined || info.seriesNumber < current) {
+        earliestInSeries.set(info.seriesName, info.seriesNumber);
+      }
+    }
+
+    return filteredBooks.filter((book) => {
+      const info = parseSeriesInfo(book.title);
+      if (!info) return true; // standalone book, always eligible
+
+      // Only the earliest unread entry in its series survives.
+      return info.seriesNumber === earliestInSeries.get(info.seriesName);
+    });
+  }, [filteredBooks]);
 
   return (
     <>
@@ -108,9 +135,11 @@ export default function Home() {
           ) : (
             <>
               <FilterPanel books={books} filters={filters} setFilters={setFilters} />
-              <ShuffleCard filteredBooks={filteredBooks} onStatusChange={loadBooks} />
 
-              {/* Reupload toggle - the actual fix for "where's my upload button" */}
+              {/* NEW: passing oraclePool instead of filteredBooks, so the
+                  Oracle never offers a mid-series book out of order */}
+              <ShuffleCard filteredBooks={oraclePool} onStatusChange={loadBooks} />
+
               <div style={{ textAlign: 'center', margin: '30px 0' }}>
                 <button
                   className="btn btn-secondary"
@@ -134,18 +163,14 @@ export default function Home() {
 
         {!loading && !loadError && books.length > 0 && (
           <aside className="fated-sidebar">
-            {/* Sits on top since it can feed either list below it */}
             <AddBookSearch books={books} onStatusChange={loadBooks} />
-
             <FatedReads books={books} onStatusChange={loadBooks} />
-
             <KoboList books={books} onStatusChange={loadBooks} />
           </aside>
         )}
 
       </div>
 
-      {/* Full-width band, always last on the page */}
       {!loading && !loadError && books.length > 0 && (
         <div className="messenger-band">
           <SyncPanel books={books} onDataChanged={loadBooks} />

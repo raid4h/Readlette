@@ -14,7 +14,9 @@
 //
 // Once a book is revealed you can:
 //   - 💌 Save it to 🎀 Thy Fated Reads
-//   - ✅ Mark it already read, right here, without visiting Fated Reads
+//   - ✅ Mark it already read, right here
+// The cover image (if any) is built from the book's ISBN via Open Library
+// - see lib/covers.js. Not every book has one.
 // =============================================================================
 
 import { useState, useEffect } from 'react';
@@ -24,6 +26,7 @@ import {
   decreeTitles,
   deliberationSequence,
 } from "../lib/royalDecrees";
+import { getCoverUrl } from '../lib/covers';
 
 const SPARKLE_GLYPHS = [
   '✦',
@@ -57,10 +60,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [thinking, setThinking] = useState(false);
   const [thinkingMessage, setThinkingMessage] = useState("");
   const [decreeTitle, setDecreeTitle] = useState("");
-
-  // NEW: themed line shown after marking the current pick "already read".
-  // Cleared whenever a fresh shuffle happens, so it never carries over
-  // onto a different book.
   const [finishMessage, setFinishMessage] = useState("");
 
   async function handleShuffle() {
@@ -69,7 +68,7 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
     setThinking(true);
     setPickedBook(null);
-    setFinishMessage(""); // NEW: clear any leftover banner from last pick
+    setFinishMessage("");
 
     setSparkles(randomSparkles());
 
@@ -95,7 +94,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     const isQueued = !!pickedBook.queued_at;
     const action = isQueued ? 'unqueue' : 'queue';
 
-    // Optimistic local update so the button flips instantly.
     setPickedBook(prev => ({
       ...prev,
       queued_at: isQueued ? null : new Date().toISOString(),
@@ -110,23 +108,18 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
-  // NEW: mark the currently revealed book as already finished, right here,
-  // instead of having to go find it in Thy Fated Reads first.
   async function markFinished() {
 
     if (!pickedBook) return;
 
-    // Themed confirmation line, shown right away (optimistic, same pattern
-    // as toggleFated above).
     setFinishMessage(
       "It is decreed: this tome is VANQUISHED. Onward to thy next unread victim."
     );
 
-    // Optimistically update local state so the button/badge react instantly.
     setPickedBook(prev => ({
       ...prev,
       shelf: 'read',
-      queued_at: null, // finishing also drops it out of Fated Reads
+      queued_at: null,
     }));
 
     await fetch('/api/books/status', {
@@ -135,9 +128,12 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
       body: JSON.stringify({ id: pickedBook.id, action: 'finish' }),
     });
 
-    // Refresh the full book list so Fated Reads / everything else stays in sync.
     onStatusChange?.();
   }
+
+  // Computed once per render - 'L' (large) size, right for the big reveal image.
+  // Will be null if the book has no ISBN.
+  const coverSrc = pickedBook ? getCoverUrl(pickedBook, 'L') : null;
 
   return (
 
@@ -215,11 +211,18 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
           <h2 className="thou-shalt">THOU SHALT READ</h2>
 
-          {pickedBook.cover_url && (
+          {/* Only render the <img> at all if we have a URL to try - if it
+              404s (Open Library has no cover for this ISBN), onError hides
+              it instead of leaving a broken-image icon. Because this whole
+              block is remounted fresh each shuffle (key={pickedBook.id} on
+              the parent div), there's no need to reset any "failed" state
+              by hand - a plain style hide on error is enough. */}
+          {coverSrc && (
             <img
               className="book-cover"
-              src={pickedBook.cover_url}
+              src={coverSrc}
               alt={pickedBook.title}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           )}
 
@@ -234,7 +237,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
             ))}
           </div>
 
-          {/* NEW: wrapper so both action buttons sit side by side */}
           <div className="book-reveal-actions">
 
             <button
@@ -245,8 +247,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
               {pickedBook.queued_at ? '💔 Remove from Fated Reads' : '💌 Save to Fated Reads'}
             </button>
 
-            {/* NEW: only show if not already marked read, so you can't
-                "finish" the same book twice from this card */}
             {pickedBook.shelf !== 'read' && (
               <button
                 type="button"
@@ -259,7 +259,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
           </div>
 
-          {/* NEW: themed confirmation line, shown after clicking the button above */}
           {finishMessage && (
             <p className="hint fated-finish-banner">
               {finishMessage}

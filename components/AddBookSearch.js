@@ -5,35 +5,36 @@
 // ----------------------------------------------------------------------------
 // 🔍 Summon a Tome by Name
 //
-// Search your full library directly by title, and add any book straight to
-// Fated Reads or Kobo - no need to wait for the Oracle to pick it for you.
+// Search your full library directly by title, and:
+//   - 💌 add it straight to Fated Reads
+//   - 📱 add it straight to Kobo
+//   - 🗑️ remove it from your to-read shelf entirely (e.g. you changed your
+//     mind and Goodreads hasn't been reconciled yet)
 // ============================================================================
 
 import { useState, useMemo } from 'react';
+import BookMiniCover from './BookMiniCover';
 
 export default function AddBookSearch({ books, onStatusChange }) {
 
   const [query, setQuery] = useState('');
 
-  // Only search once there's something meaningful typed - avoids dumping
-  // all 1254+ books on screen after a single keystroke.
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (q.length < 2) return [];
 
     return books
       .filter(book => book.title.toLowerCase().includes(q))
-      .slice(0, 8); // cap so the dropdown stays scannable
+      .slice(0, 8);
   }, [books, query]);
 
-  async function addBook(id, action) {
+  async function updateStatus(id, action) {
     await fetch('/api/books/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, action }),
     });
     onStatusChange?.();
-    // Clear the search so the dropdown closes and the box is ready again.
     setQuery('');
   }
 
@@ -61,9 +62,13 @@ export default function AddBookSearch({ books, onStatusChange }) {
 
             <li key={book.id} className="search-result-item">
 
+              {/* NEW: cover thumbnail */}
               <div className="fated-item-info">
-                <p className="fated-item-title">{book.title}</p>
-                <p className="fated-item-author">{book.author}</p>
+                <BookMiniCover book={book} />
+                <div>
+                  <p className="fated-item-title">{book.title}</p>
+                  <p className="fated-item-author">{book.author}</p>
+                </div>
               </div>
 
               <div className="fated-item-actions">
@@ -72,7 +77,7 @@ export default function AddBookSearch({ books, onStatusChange }) {
                   type="button"
                   className="fated-icon-btn"
                   title="Add to Fated Reads"
-                  onClick={() => addBook(book.id, 'queue')}
+                  onClick={() => updateStatus(book.id, 'queue')}
                 >
                   💌
                 </button>
@@ -81,9 +86,18 @@ export default function AddBookSearch({ books, onStatusChange }) {
                   type="button"
                   className="fated-icon-btn"
                   title="Add to Kobo"
-                  onClick={() => addBook(book.id, 'kobo')}
+                  onClick={() => updateStatus(book.id, 'kobo')}
                 >
                   📱
+                </button>
+
+                <button
+                  type="button"
+                  className="fated-icon-btn"
+                  title="Remove from Library"
+                  onClick={() => updateStatus(book.id, 'remove')}
+                >
+                  🗑️
                 </button>
 
               </div>
@@ -95,7 +109,6 @@ export default function AddBookSearch({ books, onStatusChange }) {
         </ul>
       )}
 
-      {/* Only show "no results" once they've actually typed enough to search */}
       {query.trim().length >= 2 && matches.length === 0 && (
         <p className="hint">No tomes found by that name in thy library.</p>
       )}
