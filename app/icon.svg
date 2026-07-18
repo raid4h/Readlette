@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Readlette favicon.
+    Next.js auto-serves any app/icon.svg as the site favicon - no extra
+    config needed, this just needs to exist here.
+    Colors match globals.css: pink-dark/violet gradient background,
+    a simple open-book shape, gold sparkle on top (echoes .thinking-stars
+    and .sparkle-field elsewhere in the app).
+  -->
+  <rect width="32" height="32" rx="8" fill="#efc7ff"/>
+  <path d="M16 10 C13 8.5 9 8 6 9 V22 C9 21 13 21.5 16 23 C19 21.5 23 21 26 22 V9 C23 8 19 8.5 16 10 Z"
+        fill="#563b67" opacity="0.85"/>
+  <path d="M16 10 V23" stroke="#fff9fd" stroke-width="0.6" opacity="0.5"/>
+  <path d="M23 5 L24 7.5 L26.5 8 L24 8.5 L23 11 L22 8.5 L19.5 8 L22 7.5 Z" fill="#f1d37a"/>
+</svg>

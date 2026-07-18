@@ -23,6 +23,7 @@ import FatedReads from '../components/FatedReads';
 import KoboList from '../components/KoboList';
 import AddBookSearch from '../components/AddBookSearch';
 import { parseSeriesInfo } from '../lib/seriesUtils';
+import AboutFooter from '../components/AboutFooter';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -171,11 +172,15 @@ export default function Home() {
 
       </div>
 
+      {/* Full-width band, always last on the page */}
       {!loading && !loadError && books.length > 0 && (
         <div className="messenger-band">
           <SyncPanel books={books} onDataChanged={loadBooks} />
         </div>
       )}
+
+      {/* NEW: about box, sits below everything else, always visible */}
+      <AboutFooter />
     </>
   );
 }

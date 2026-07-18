@@ -582,6 +582,27 @@ img{
 
 }
 
+/* ============================================================================
+   About / footer box
+============================================================================ */
+
+.about-footer{
+  width:min(900px,92vw);
+  margin:0 auto;
+  padding:0 24px 100px;
+}
+
+.about-footer-card{
+  text-align:center;
+}
+
+.about-footer-links{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:18px;
+}
 
 /* ============================================================================
    Chip layout
