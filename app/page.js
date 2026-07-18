@@ -2,17 +2,15 @@
 
 // =============================================================================
 // The whole app lives on one page. It:
-//   1. Loads your full book list from /api/books once on mount
-//   2. Filters it client-side based on whatever chips are toggled
-//   3. NEW: narrows that further so only the earliest unread book per
-//      series is eligible for the Oracle (see oraclePool below)
-//   4. Hands that narrowed list to ShuffleCard, which does the picking
+//   1. Loads your full to-read book list from /api/books once on mount
+//   2. Filters it client-side based on genre/decade/gender chips
+//   3. Narrows to one-earliest-per-series (unless standalone-only is on,
+//      in which case series books are excluded entirely)
+//   4. Hands that narrowed pool to ShuffleCard for picking
 //
-// Sidebar (right side / stacked below on narrow screens):
-//   🔍 Summon a Tome by Name -> 🎀 Thy Fated Reads -> 📱 Thy Kobo Shelf
-//
-// Royal Messenger Service (SyncPanel) is a separate full-width band at the
-// very bottom of the page, below everything else.
+// 📖 Currently Reading banner sits at the top (only renders if non-empty).
+// Sidebar: 🔍 Search -> 🎀 Fated Reads -> 📱 Kobo -> 📚 Series Progress.
+// Royal Messenger Service is a full-width band at the very bottom.
 // =============================================================================
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import UploadCsv from '../components/UploadCsv';
@@ -22,8 +20,10 @@ import ShuffleCard from '../components/ShuffleCard';
 import FatedReads from '../components/FatedReads';
 import KoboList from '../components/KoboList';
 import AddBookSearch from '../components/AddBookSearch';
-import { parseSeriesInfo } from '../lib/seriesUtils';
+import CurrentlyReading from '../components/CurrentlyReading';
+import SeriesProgress from '../components/SeriesProgress';
 import AboutFooter from '../components/AboutFooter';
+import { parseSeriesInfo } from '../lib/seriesUtils';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -39,13 +39,15 @@ export default function Home() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [showReupload, setShowReupload] = useState(false);
 
+  // NEW: when true, the Oracle pool excludes ALL series books entirely -
+  // not just later volumes, but even the earliest unread one in a series.
+  const [standaloneOnly, setStandaloneOnly] = useState(false);
+
   const loadBooks = useCallback(async () => {
     setLoadError(null);
     try {
       const res = await fetch('/api/books', { cache: 'no-store' });
-      if (!res.ok) {
-        throw new Error(`/api/books returned ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`/api/books returned ${res.status}`);
       const data = await res.json();
       setBooks(data.books || []);
     } catch (err) {
@@ -60,7 +62,6 @@ export default function Home() {
     loadBooks();
   }, [loadBooks]);
 
-  // Your existing genre/decade/gender filters - unchanged.
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
       if (filters.genres.size > 0) {
@@ -85,16 +86,18 @@ export default function Home() {
     });
   }, [books, filters]);
 
-  // NEW: from filteredBooks, keep only the earliest unread book per series.
-  // Since /api/books already only returns shelf = 'to-read' books, the
-  // lowest series number remaining IS the next unread entry - we don't
-  // need to know which earlier books you've already finished.
   const oraclePool = useMemo(() => {
-    const earliestInSeries = new Map(); // seriesName -> lowest number seen
+    // NEW: standalone-only mode - drop every book that matches the series
+    // title pattern at all, before doing the earliest-per-series step.
+    const candidatePool = standaloneOnly
+      ? filteredBooks.filter((book) => !parseSeriesInfo(book.title))
+      : filteredBooks;
 
-    for (const book of filteredBooks) {
+    const earliestInSeries = new Map();
+
+    for (const book of candidatePool) {
       const info = parseSeriesInfo(book.title);
-      if (!info) continue; // standalone book, doesn't affect series tracking
+      if (!info) continue;
 
       const current = earliestInSeries.get(info.seriesName);
       if (current === undefined || info.seriesNumber < current) {
@@ -102,14 +105,12 @@ export default function Home() {
       }
     }
 
-    return filteredBooks.filter((book) => {
+    return candidatePool.filter((book) => {
       const info = parseSeriesInfo(book.title);
-      if (!info) return true; // standalone book, always eligible
-
-      // Only the earliest unread entry in its series survives.
+      if (!info) return true;
       return info.seriesNumber === earliestInSeries.get(info.seriesName);
     });
-  }, [filteredBooks]);
+  }, [filteredBooks, standaloneOnly]);
 
   return (
     <>
@@ -135,17 +136,27 @@ export default function Home() {
             <UploadCsv onImported={loadBooks} />
           ) : (
             <>
+              {/* NEW: only renders if you actually have a currently-reading book */}
+              <CurrentlyReading />
+
               <FilterPanel books={books} filters={filters} setFilters={setFilters} />
 
-              {/* NEW: passing oraclePool instead of filteredBooks, so the
-                  Oracle never offers a mid-series book out of order */}
+              {/* NEW: standalone-only toggle, styled like an existing filter chip */}
+              <div className="standalone-toggle-row">
+                <button
+                  type="button"
+                  className="chip"
+                  aria-pressed={standaloneOnly}
+                  onClick={() => setStandaloneOnly((s) => !s)}
+                >
+                  📖 Standalones only
+                </button>
+              </div>
+
               <ShuffleCard filteredBooks={oraclePool} onStatusChange={loadBooks} />
 
               <div style={{ textAlign: 'center', margin: '30px 0' }}>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowReupload((s) => !s)}
-                >
+                <button className="btn btn-secondary" onClick={() => setShowReupload((s) => !s)}>
                   {showReupload ? '📜 Hide the Scroll' : '📜 Reupload My Shelf'}
                 </button>
               </div>
@@ -167,19 +178,19 @@ export default function Home() {
             <AddBookSearch books={books} onStatusChange={loadBooks} />
             <FatedReads books={books} onStatusChange={loadBooks} />
             <KoboList books={books} onStatusChange={loadBooks} />
+            {/* NEW: series progress, refetches whenever loadBooks fires */}
+            <SeriesProgress onStatusChange={loadBooks} />
           </aside>
         )}
 
       </div>
 
-      {/* Full-width band, always last on the page */}
       {!loading && !loadError && books.length > 0 && (
         <div className="messenger-band">
           <SyncPanel books={books} onDataChanged={loadBooks} />
         </div>
       )}
 
-      {/* NEW: about box, sits below everything else, always visible */}
       <AboutFooter />
     </>
   );

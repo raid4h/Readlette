@@ -14,13 +14,13 @@ export default function AboutFooter() {
 
       <div className="card about-footer-card">
 
-        <h2>🧚 What is this?</h2>
+        <h2>🧚 What is Readlette?</h2>
 
         <p className="hint">
-          Readlette is a personal project - a little Fairy Court oracle that
+          Readlette is a personal project with a little Fairy oracle that
           picks a random book from my 1250+ book Goodreads to-read shelf,
-          with filters for genre, decade, and author gender. Built as a
-          portfolio piece with Next.js and Postgres.
+          with filters for genre, decade, and author gender. Built for
+          personal use and as a portfolio piece with Next.js and Postgres.
         </p>
 
         <div className="about-footer-links">
@@ -30,7 +30,7 @@ export default function AboutFooter() {
             rel="noopener noreferrer"
             className="btn btn-secondary"
           >
-            💻 GitHub
+            💻 GitHub Repository
           </a>
           
             <a href="https://www.goodreads.com/user/show/28064716"
@@ -44,7 +44,7 @@ export default function AboutFooter() {
             <a href="mailto:valfrae15@gmail.com"
             className="btn btn-secondary"
           >
-            ✉️ Email me
+            ✉️ Email me!
           </a>
 
         </div>

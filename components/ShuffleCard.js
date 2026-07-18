@@ -3,20 +3,10 @@
 // =============================================================================
 // Readlette
 // ----------------------------------------------------------------------------
-// The heart of the app.
-//
-// Clicking the button:
-// 1. Plays a little "Fairy Court is deciding..." animation.
-// 2. Cycles through magical loading messages.
-// 3. Picks a random book.
-// 4. Displays a random royal decree.
-// 5. Shows sparkles.
-//
-// Once a book is revealed you can:
-//   - 💌 Save it to 🎀 Thy Fated Reads
-//   - ✅ Mark it already read, right here
-// The cover image (if any) is built from the book's ISBN via Open Library
-// - see lib/covers.js. Not every book has one.
+// The heart of the app. Two draw modes now:
+//   - Consult the Oracle: the original single big reveal
+//   - 🔮 Draw Three Fates: pulls 3 unique books, shown as a tarot-style
+//     spread, each independently saveable to Fated Reads or markable read
 // =============================================================================
 
 import { useState, useEffect } from 'react';
@@ -28,16 +18,8 @@ import {
 } from "../lib/royalDecrees";
 import { getCoverUrl } from '../lib/covers';
 
-const SPARKLE_GLYPHS = [
-  '✦',
-  '✧',
-  '❀',
-  '✦',
-  '⋆',
-  '✿',
-  '♡',
-  '☾',
-];
+const SPARKLE_GLYPHS = ['✦', '✧', '❀', '✦', '⋆', '✿', '♡', '☾'];
+const TAROT_NUMERALS = ['I', 'II', 'III'];
 
 function randomSparkles() {
   return Array.from({ length: 12 }, (_, i) => ({
@@ -53,8 +35,18 @@ function randomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+// Picks `count` unique random books from a pool. A simple full shuffle is
+// plenty fast for pool sizes in the hundreds/low thousands we're dealing
+// with here - no need for anything fancier.
+function pickUniqueBooks(pool, count) {
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
 export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [pickedBook, setPickedBook] = useState(null);
+  const [threeFates, setThreeFates] = useState(null); // array of 3 books, or null
+
   const [shuffleCount, setShuffleCount] = useState(0);
   const [sparkles, setSparkles] = useState([]);
   const [thinking, setThinking] = useState(false);
@@ -62,23 +54,25 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   const [decreeTitle, setDecreeTitle] = useState("");
   const [finishMessage, setFinishMessage] = useState("");
 
-  async function handleShuffle() {
-
-    if (filteredBooks.length === 0 || thinking) return;
-
-    setThinking(true);
-    setPickedBook(null);
-    setFinishMessage("");
-
+  async function runDeliberation() {
     setSparkles(randomSparkles());
-
     for (const line of deliberationSequence) {
       setThinkingMessage(line);
       await new Promise(resolve => setTimeout(resolve, 300));
     }
+  }
 
-    const choice =
-      filteredBooks[Math.floor(Math.random() * filteredBooks.length)];
+  async function handleShuffle() {
+    if (filteredBooks.length === 0 || thinking) return;
+
+    setThinking(true);
+    setPickedBook(null);
+    setThreeFates(null); // clear the other mode's result
+    setFinishMessage("");
+
+    await runDeliberation();
+
+    const choice = filteredBooks[Math.floor(Math.random() * filteredBooks.length)];
 
     setPickedBook(choice);
     setDecreeTitle(decreeTitles[Math.floor(Math.random() * decreeTitles.length)]);
@@ -87,10 +81,29 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     setThinking(false);
   }
 
+  async function handleDrawThree() {
+    if (filteredBooks.length === 0 || thinking) return;
+
+    setThinking(true);
+    setPickedBook(null); // clear the other mode's result
+    setThreeFates(null);
+    setFinishMessage("");
+
+    await runDeliberation();
+
+    const picks = pickUniqueBooks(filteredBooks, Math.min(3, filteredBooks.length));
+
+    setThreeFates(picks);
+    setDecreeTitle(decreeTitles[Math.floor(Math.random() * decreeTitles.length)]);
+    setSparkles(randomSparkles());
+    setShuffleCount(n => n + 1);
+    setThinking(false);
+  }
+
+  // --- Single-pick actions (unchanged from before) ---
+
   async function toggleFated() {
-
     if (!pickedBook) return;
-
     const isQueued = !!pickedBook.queued_at;
     const action = isQueued ? 'unqueue' : 'queue';
 
@@ -109,18 +122,13 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
   }
 
   async function markFinished() {
-
     if (!pickedBook) return;
 
     setFinishMessage(
       "It is decreed: this tome is VANQUISHED. Onward to thy next unread victim."
     );
 
-    setPickedBook(prev => ({
-      ...prev,
-      shelf: 'read',
-      queued_at: null,
-    }));
+    setPickedBook(prev => ({ ...prev, shelf: 'read', queued_at: null }));
 
     await fetch('/api/books/status', {
       method: 'POST',
@@ -131,8 +139,48 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
-  // Computed once per render - 'L' (large) size, right for the big reveal image.
-  // Will be null if the book has no ISBN.
+  // --- Tarot-spread actions (same logic, applied to one card by index) ---
+
+  async function toggleFatedInSpread(index) {
+    const book = threeFates[index];
+    const isQueued = !!book.queued_at;
+    const action = isQueued ? 'unqueue' : 'queue';
+
+    setThreeFates(prev =>
+      prev.map((b, i) =>
+        i === index ? { ...b, queued_at: isQueued ? null : new Date().toISOString() } : b
+      )
+    );
+
+    await fetch('/api/books/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: book.id, action }),
+    });
+
+    onStatusChange?.();
+  }
+
+  async function markFinishedInSpread(index) {
+    const book = threeFates[index];
+
+    setFinishMessage(
+      "It is decreed: this tome is VANQUISHED. Onward to thy next unread victim."
+    );
+
+    setThreeFates(prev =>
+      prev.map((b, i) => (i === index ? { ...b, shelf: 'read', queued_at: null } : b))
+    );
+
+    await fetch('/api/books/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: book.id, action: 'finish' }),
+    });
+
+    onStatusChange?.();
+  }
+
   const coverSrc = pickedBook ? getCoverUrl(pickedBook, 'L') : null;
 
   return (
@@ -146,25 +194,11 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
           onClick={handleShuffle}
           disabled={thinking || filteredBooks.length === 0}
         >
-
           {thinking ? (
-            <>
-              ✨
-              <br />
-              Consulting
-              <br />
-              the Oracle
-            </>
+            <>✨<br />Consulting<br />the Oracle</>
           ) : (
-            <>
-              ✨
-              <br />
-              Consult
-              <br />
-              the Oracle
-            </>
+            <>✨<br />Consult<br />the Oracle</>
           )}
-
         </button>
 
         <div className="sparkle-field" key={shuffleCount}>
@@ -181,8 +215,16 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
       </div>
 
-      {/* Splits the word at the shared "destin" stem so plural becomes
-      "destinies" instead of wrongly appending "ies" onto "destiny" */}
+      {/* NEW: secondary draw mode, sits just below the main button */}
+      <button
+        type="button"
+        className="btn btn-secondary draw-three-btn"
+        disabled={thinking || filteredBooks.length === 0}
+        onClick={handleDrawThree}
+      >
+        🔮 Draw Three Fates
+      </button>
+
       <p className="hint">
         {filteredBooks.length} possible destin{filteredBooks.length === 1 ? "y" : "ies"}
       </p>
@@ -202,22 +244,14 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
         </div>
       )}
 
+      {/* --- Single reveal --- */}
       {pickedBook && (
-
         <div className="book-reveal" key={pickedBook.id}>
 
           <p className="royal-decree">{decreeTitle}</p>
-
           <div className="royal-divider">✦ ───────── ✦</div>
-
           <h2 className="thou-shalt">THOU SHALT READ</h2>
 
-          {/* Only render the <img> at all if we have a URL to try - if it
-              404s (Open Library has no cover for this ISBN), onError hides
-              it instead of leaving a broken-image icon. Because this whole
-              block is remounted fresh each shuffle (key={pickedBook.id} on
-              the parent div), there's no need to reset any "failed" state
-              by hand - a plain style hide on error is enough. */}
           {coverSrc && (
             <img
               className="book-cover"
@@ -228,50 +262,92 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
           )}
 
           <p className="book-title">{pickedBook.title}</p>
-
           <p className="book-author">by {pickedBook.author}</p>
 
           <div className="book-tags">
             {pickedBook.pub_year && <span>{pickedBook.pub_year}</span>}
-            {(pickedBook.genres || []).map(g => (
-              <span key={g}>{g}</span>
-            ))}
+            {(pickedBook.genres || []).map(g => <span key={g}>{g}</span>)}
           </div>
 
           <div className="book-reveal-actions">
-
-            <button
-              type="button"
-              className="btn btn-secondary fated-save-btn"
-              onClick={toggleFated}
-            >
+            <button type="button" className="btn btn-secondary fated-save-btn" onClick={toggleFated}>
               {pickedBook.queued_at ? '💔 Remove from Fated Reads' : '💌 Save to Fated Reads'}
             </button>
 
             {pickedBook.shelf !== 'read' && (
-              <button
-                type="button"
-                className="btn btn-secondary fated-save-btn"
-                onClick={markFinished}
-              >
+              <button type="button" className="btn btn-secondary fated-save-btn" onClick={markFinished}>
                 ✅ 'Tis Already Read
               </button>
             )}
-
           </div>
 
-          {finishMessage && (
-            <p className="hint fated-finish-banner">
-              {finishMessage}
-            </p>
-          )}
+        </div>
+      )}
+
+      {/* --- NEW: Three Fates tarot spread --- */}
+      {threeFates && (
+        <div className="book-reveal">
+
+          <p className="royal-decree">{decreeTitle}</p>
+          <div className="royal-divider">✦ ───────── ✦</div>
+          <h2 className="thou-shalt">THY THREEFOLD FATE</h2>
+
+          <div className="tarot-spread">
+            {threeFates.map((book, i) => {
+              const cover = getCoverUrl(book, 'M');
+              return (
+                <div key={book.id} className="tarot-card">
+
+                  <p className="tarot-card-numeral">{TAROT_NUMERALS[i]}</p>
+
+                  {cover && (
+                    <img
+                      className="tarot-card-cover"
+                      src={cover}
+                      alt={book.title}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  )}
+
+                  <p className="tarot-card-title">{book.title}</p>
+                  <p className="tarot-card-author">by {book.author}</p>
+
+                  <div className="tarot-card-actions">
+                    <button
+                      type="button"
+                      className="fated-icon-btn"
+                      title="Save to Fated Reads"
+                      onClick={() => toggleFatedInSpread(i)}
+                    >
+                      {book.queued_at ? '💔' : '💌'}
+                    </button>
+
+                    {book.shelf !== 'read' && (
+                      <button
+                        type="button"
+                        className="fated-icon-btn"
+                        title="Already read"
+                        onClick={() => markFinishedInSpread(i)}
+                      >
+                        ✅
+                      </button>
+                    )}
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
 
         </div>
+      )}
 
+      {/* Shared banner for both modes */}
+      {finishMessage && (
+        <p className="hint fated-finish-banner">{finishMessage}</p>
       )}
 
     </div>
 
   );
-
 }
