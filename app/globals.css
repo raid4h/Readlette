@@ -1090,7 +1090,7 @@ input[type="file"]::file-selector-button:hover{
 ============================================================================ */
 
 .fated-scroll{
-  max-height:260px;
+  max-height:760px;
   overflow-y:auto;
   padding-right:6px; /* keeps the scrollbar from overlapping the last column of buttons */
 }
