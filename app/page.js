@@ -1,16 +1,21 @@
 'use client';
 
 // =============================================================================
-// The whole app lives on one page. It:
-//   1. Loads your full to-read book list from /api/books once on mount
-//   2. Filters it client-side based on genre/decade/gender chips
-//   3. Narrows to one-earliest-per-series (unless standalone-only is on,
-//      in which case series books are excluded entirely)
-//   4. Hands that narrowed pool to ShuffleCard for picking
+// The whole app lives on one page, now organized into tabs instead of a
+// sidebar (the old layout got too crowded once Search/Fated Reads/Kobo
+// were all visible simultaneously).
 //
-// 📖 Currently Reading banner sits at the top (only renders if non-empty).
-// Sidebar: 🔍 Search -> 🎀 Fated Reads -> 📱 Kobo -> 📚 Series Progress.
-// Royal Messenger Service is a full-width band at the very bottom.
+// Tabs:
+//   🔮 The Oracle    - filters, standalone toggle, Consult/Draw Three Fates,
+//                       Currently Reading banner
+//   🔍 Summon a Tome - search-and-add bar
+//   🎀 Fated Reads   - the saved-for-later shortlist
+//   📱 Kobo Shelf    - manually tracked e-reader list
+//   📜 Thy Library   - CSV upload/reupload + Royal Messenger Service
+//
+// The About box renders below every tab, not inside any one of them -
+// it's a one-time "what is this" note for strangers, so it shouldn't be
+// hidden behind a tab click most visitors would never make.
 // =============================================================================
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import UploadCsv from '../components/UploadCsv';
@@ -22,6 +27,7 @@ import KoboList from '../components/KoboList';
 import AddBookSearch from '../components/AddBookSearch';
 import CurrentlyReading from '../components/CurrentlyReading';
 import AboutFooter from '../components/AboutFooter';
+import TabNav from '../components/TabNav';
 import { parseSeriesInfo } from '../lib/seriesUtils';
 import { getPageLengthLabel } from '../lib/pageLength';
 
@@ -33,16 +39,26 @@ const EMPTY_FILTERS = {
   lengths: new Set(),
 };
 
+// Defined outside the component since it's static - no need to recreate
+// this array on every render.
+const TABS = [
+  { id: 'oracle', label: '🔮 The Oracle' },
+  { id: 'search', label: '🔍 Summon a Tome' },
+  { id: 'fated', label: '🎀 Fated Reads' },
+  { id: 'kobo', label: '📱 Kobo Shelf' },
+  { id: 'library', label: '📜 Thy Library' },
+];
+
 export default function Home() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [showReupload, setShowReupload] = useState(false);
-
-  // NEW: when true, the Oracle pool excludes ALL series books entirely -
-  // not just later volumes, but even the earliest unread one in a series.
   const [standaloneOnly, setStandaloneOnly] = useState(false);
+
+  // NEW: which tab is currently showing. Defaults to the Oracle since
+  // that's the core interaction most visits are for.
+  const [activeTab, setActiveTab] = useState('oracle');
 
   const loadBooks = useCallback(async () => {
     setLoadError(null);
@@ -83,7 +99,6 @@ export default function Home() {
         if (!filters.genders.has(book.author_gender)) return false;
       }
 
-      // page-count length filter
       if (filters.lengths.size > 0) {
         const label = getPageLengthLabel(book.page_count);
         if (!label || !filters.lengths.has(label)) return false;
@@ -94,8 +109,6 @@ export default function Home() {
   }, [books, filters]);
 
   const oraclePool = useMemo(() => {
-    // NEW: standalone-only mode - drop every book that matches the series
-    // title pattern at all, before doing the earliest-per-series step.
     const candidatePool = standaloneOnly
       ? filteredBooks.filter((book) => !parseSeriesInfo(book.title))
       : filteredBooks;
@@ -121,81 +134,76 @@ export default function Home() {
 
   return (
     <>
-      <div className="page-layout">
+      <div className="app-shell">
 
-        <div className="app-shell">
-          <header className="header">
-            <h1>ʚ Readlette ɞ</h1>
-            <p>the Fairy Court hath selected thy next tome.</p>
-          </header>
-          <div className="vine-divider">
-          ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
-          </div>
-
-          {loading ? (
-            <p className="empty-state">✨ Summoning the Fairy Council...</p>
-          ) : loadError ? (
-            <div className="empty-state">
-              <p>{loadError}</p>
-              <button onClick={loadBooks}>Try again</button>
-            </div>
-          ) : books.length === 0 ? (
-            <UploadCsv onImported={loadBooks} />
-          ) : (
-            <>
-              {/* NEW: only renders if you actually have a currently-reading book */}
-              <CurrentlyReading />
-
-              <FilterPanel books={books} filters={filters} setFilters={setFilters} />
-
-              {/* NEW: standalone-only toggle, styled like an existing filter chip */}
-              <div className="standalone-toggle-row">
-                <button
-                  type="button"
-                  className="chip"
-                  aria-pressed={standaloneOnly}
-                  onClick={() => setStandaloneOnly((s) => !s)}
-                >
-                  📖 Standalones only
-                </button>
-              </div>
-
-              <ShuffleCard filteredBooks={oraclePool} onStatusChange={loadBooks} />
-
-              <div style={{ textAlign: 'center', margin: '30px 0' }}>
-                <button className="btn btn-secondary" onClick={() => setShowReupload((s) => !s)}>
-                  {showReupload ? '📜 The Oracle Hath Seen Enough' : '📜 Present Thy Library'}
-                </button>
-              </div>
-
-              {showReupload && (
-                <UploadCsv
-                  onImported={() => {
-                    loadBooks();
-                    setShowReupload(false);
-                  }}
-                />
-              )}
-            </>
-          )}
+        <header className="header">
+          <h1>ʚ Readlette ɞ</h1>
+          <p>the Fairy Court hath selected thy next tome.</p>
+        </header>
+        <div className="vine-divider">
+        ✦ ₊˚ʚ 📖 ɞ˚₊ ✦
         </div>
 
-        {!loading && !loadError && books.length > 0 && (
-          <aside className="fated-sidebar">
-            <AddBookSearch books={books} onStatusChange={loadBooks} />
-            <FatedReads books={books} onStatusChange={loadBooks} />
-            <KoboList books={books} onStatusChange={loadBooks} />
-          </aside>
-        )}
+        {loading ? (
+          <p className="empty-state">✨ Summoning the Fairy Council...</p>
+        ) : loadError ? (
+          <div className="empty-state">
+            <p>{loadError}</p>
+            <button onClick={loadBooks}>Try again</button>
+          </div>
+        ) : books.length === 0 ? (
+          // First-time setup - no tabs shown at all until there's
+          // actually a library to browse.
+          <UploadCsv onImported={loadBooks} />
+        ) : (
+          <>
+            <TabNav tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 
+            {activeTab === 'oracle' && (
+              <>
+                <CurrentlyReading />
+
+                <FilterPanel books={books} filters={filters} setFilters={setFilters} />
+
+                <div className="standalone-toggle-row">
+                  <button
+                    type="button"
+                    className="chip"
+                    aria-pressed={standaloneOnly}
+                    onClick={() => setStandaloneOnly((s) => !s)}
+                  >
+                    📖 Standalones only
+                  </button>
+                </div>
+
+                <ShuffleCard filteredBooks={oraclePool} onStatusChange={loadBooks} />
+              </>
+            )}
+
+            {activeTab === 'search' && (
+              <AddBookSearch books={books} onStatusChange={loadBooks} />
+            )}
+
+            {activeTab === 'fated' && (
+              <FatedReads books={books} onStatusChange={loadBooks} />
+            )}
+
+            {activeTab === 'kobo' && (
+              <KoboList books={books} onStatusChange={loadBooks} />
+            )}
+
+            {activeTab === 'library' && (
+              <>
+                <UploadCsv onImported={loadBooks} />
+                <SyncPanel books={books} onDataChanged={loadBooks} />
+              </>
+            )}
+          </>
+        )}
       </div>
 
-      {!loading && !loadError && books.length > 0 && (
-        <div className="messenger-band">
-          <SyncPanel books={books} onDataChanged={loadBooks} />
-        </div>
-      )}
-
+      {/* Persistent across every tab, including the first-time upload
+          screen above - see the comment at the top of this file for why. */}
       <AboutFooter />
     </>
   );

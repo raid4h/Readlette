@@ -2267,3 +2267,48 @@ gap:8px;
     line-height:1.8;
 
 }
+
+/* ============================================================================
+   Tab navigation (replaces the old side-by-side sidebar layout)
+============================================================================ */
+
+.tab-nav{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  width:min(900px,92vw);
+  margin:0 auto 34px;
+}
+
+.tab-nav-btn{
+  appearance:none;
+  border:none;
+  padding:12px 22px;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  border:2px solid rgba(215,185,255,.3);
+  color:var(--ink);
+  font-weight:700;
+  font-size:.9rem;
+  font-family:inherit;
+  transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.tab-nav-btn:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.85);
+}
+
+.tab-nav-btn[aria-pressed="true"]{
+  background:linear-gradient(135deg, #ffd9ec, #e8cbff);
+  border-color:rgba(255,255,255,.8);
+  box-shadow:0 10px 22px rgba(255,185,235,.25);
+}
+
+@media (max-width:600px){
+  .tab-nav-btn{
+    padding:10px 16px;
+    font-size:.82rem;
+  }
+}
