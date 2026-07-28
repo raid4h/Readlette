@@ -24,7 +24,6 @@ import FilterPanel from '../components/FilterPanel';
 import ShuffleCard from '../components/ShuffleCard';
 import FatedReads from '../components/FatedReads';
 import KoboList from '../components/KoboList';
-import AddBookSearch from '../components/AddBookSearch';
 import CurrentlyReading from '../components/CurrentlyReading';
 import AboutFooter from '../components/AboutFooter';
 import TabNav from '../components/TabNav';
@@ -43,7 +42,6 @@ const EMPTY_FILTERS = {
 // this array on every render.
 const TABS = [
   { id: 'oracle', label: '🔮 The Oracle' },
-  { id: 'search', label: '🔍 Summon a Tome' },
   { id: 'fated', label: '🎀 Fated Reads' },
   { id: 'kobo', label: '📱 Kobo Shelf' },
   { id: 'library', label: '📜 Thy Library' },
@@ -178,10 +176,6 @@ export default function Home() {
 
                 <ShuffleCard filteredBooks={oraclePool} onStatusChange={loadBooks} />
               </>
-            )}
-
-            {activeTab === 'search' && (
-              <AddBookSearch books={books} onStatusChange={loadBooks} />
             )}
 
             {activeTab === 'fated' && (

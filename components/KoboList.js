@@ -5,17 +5,15 @@
 // ----------------------------------------------------------------------------
 // 📱 Thy Kobo Shelf
 //
-// Entirely manual - Readlette has no way to know what's actually on your
-// Kobo, so books land here only when you flag them yourself. From here you
-// can promote any book straight into 🎀 Thy Fated Reads.
+// NEW: the search-and-add bar now lives directly above this list too,
+// scoped to add straight onto the Kobo shelf instead of Fated Reads.
 // ============================================================================
 
 import BookMiniCover from './BookMiniCover';
+import BookSearchBar from './AddBookSearch';
 
 export default function KoboList({ books, onStatusChange }) {
 
-  // Same change as Fated Reads - oldest-first, so new additions land at
-  // the bottom instead of the top.
   const koboBooks = books
     .filter(book => book.kobo_at)
     .sort((a, b) => new Date(a.kobo_at) - new Date(b.kobo_at));
@@ -30,70 +28,70 @@ export default function KoboList({ books, onStatusChange }) {
   }
 
   return (
-    <div className="card kobo-list">
+    <>
+      {/* NEW: scoped search bar - adds straight to the Kobo shelf */}
+      <BookSearchBar
+        books={books}
+        onStatusChange={onStatusChange}
+        action="kobo"
+        actionLabel="Add to Kobo"
+        actionIcon="📱"
+        heading="🔍 Add a Tome to Thy Kobo Shelf"
+      />
 
-    <div className="court-label">
-    ✦ ENCHANTED TRAVELLING LIBRARY ✦
-    </div>
+      <div className="card kobo-list">
 
-    <h2 className="court-title">
-        Thy Kobo Shelf
-    </h2>
+        <h2>📱 Thy Kobo Shelf</h2>
 
-    <p className="court-subtitle">
-        Tomes prepared for adventures beyond the castle walls.
-    </p>
+        {koboBooks.length === 0 ? (
+          <p className="hint">
+            No tomes marked yet. Use the search above to summon one onto thy Kobo.
+          </p>
+        ) : (
+          <ul className="fated-list fated-scroll">
 
-      {koboBooks.length === 0 ? (
-        <p className="hint">
-          No enchanted tomes await thy travels.
-          Perhaps the Royal Messenger should deliver one.
-        </p>
-      ) : (
-        <ul className="fated-list fated-scroll">
+            {koboBooks.map(book => (
 
-          {koboBooks.map(book => (
+              <li key={book.id} className="fated-item">
 
-            <li key={book.id} className="fated-item">
-
-              {/* NEW: cover thumbnail */}
-              <div className="fated-item-info">
-                <BookMiniCover book={book} />
-                <div>
-                  <p className="fated-item-title">{book.title}</p>
-                  <p className="fated-item-author">{book.author}</p>
+                <div className="fated-item-info">
+                  <BookMiniCover book={book} />
+                  <div>
+                    <p className="fated-item-title">{book.title}</p>
+                    <p className="fated-item-author">{book.author}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="fated-item-actions">
+                <div className="fated-item-actions">
 
-                <button
-                  type="button"
-                  className="fated-icon-btn"
-                  title="Add to Fated Reads"
-                  onClick={() => updateStatus(book.id, 'queue')}
-                >
-                  💌
-                </button>
+                  <button
+                    type="button"
+                    className="fated-icon-btn"
+                    title="Add to Fated Reads"
+                    onClick={() => updateStatus(book.id, 'queue')}
+                  >
+                    💌
+                  </button>
 
-                <button
-                  type="button"
-                  className="fated-icon-btn"
-                  title="Remove from Kobo"
-                  onClick={() => updateStatus(book.id, 'unkobo')}
-                >
-                  🕊️
-                </button>
+                  <button
+                    type="button"
+                    className="fated-icon-btn"
+                    title="Remove from Kobo"
+                    onClick={() => updateStatus(book.id, 'unkobo')}
+                  >
+                    🗑️
+                  </button>
 
-              </div>
+                </div>
 
-            </li>
+              </li>
 
-          ))}
+            ))}
 
-        </ul>
-      )}
+          </ul>
+        )}
 
-    </div>
+      </div>
+    </>
   );
 }

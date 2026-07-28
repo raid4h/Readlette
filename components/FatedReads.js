@@ -5,20 +5,18 @@
 // ----------------------------------------------------------------------------
 // 🎀 Thy Fated Reads
 //
-// A little shelf of books the Oracle has already chosen for you, saved to
-// read next - so you don't lose the thread between shuffles.
-// Each row shows a small cover thumbnail via BookMiniCover, when available.
+// NEW: the search-and-add bar (previously its own separate tab) now lives
+// directly above this list, scoped to add straight into Fated Reads.
 // ============================================================================
 
 import { useState } from 'react';
 import BookMiniCover from './BookMiniCover';
+import BookSearchBar from './AddBookSearch';
 
 export default function FatedReads({ books, onStatusChange }) {
 
   const [finishMessage, setFinishMessage] = useState('');
 
-  // Sorted oldest-first now (was newest-first) - so a freshly added book
-  // lands at the bottom of the list instead of jumping to the top.
   const queued = books
     .filter(book => book.queued_at)
     .sort((a, b) => new Date(a.queued_at) - new Date(b.queued_at));
@@ -41,82 +39,82 @@ export default function FatedReads({ books, onStatusChange }) {
   }
 
   return (
-    <div className="card fated-reads">
+    <>
+      {/* NEW: scoped search bar - adds straight to this list */}
+      <BookSearchBar
+        books={books}
+        onStatusChange={onStatusChange}
+        action="queue"
+        actionLabel="Add to Fated Reads"
+        actionIcon="💌"
+        heading="🔍 Add a Tome to Thy Fated Reads"
+      />
 
-    <div className="court-label">
-        ✦ ROYAL WAITING CHAMBER ✦
-    </div>
+      <div className="card fated-reads">
 
-    <h2 className="court-title">
-        Thy Fated Reads
-    </h2>
+        <h2>🎀 Thy Fated Reads</h2>
 
-    <p className="court-subtitle">
-        The Fairy Court awaiteth thy diligence.
-        These decrees remain binding until fulfilled.
-    </p>
-
-      {finishMessage && (
-        <p className="hint fated-finish-banner">
-          {finishMessage}
-        </p>
-      )}
-
-      {queued.length === 0 ? (
-        <p className="hint">
-          Tomes thou hast chosen from the Oracle shall gather here, awaiting their turn...
-        </p>
-      ) : (
-        <>
-          <p className="hint">
-            The Royal Archivists have reserved these tomes especially for thee.
+        {finishMessage && (
+          <p className="hint fated-finish-banner">
+            {finishMessage}
           </p>
+        )}
 
-          <ul className="fated-list fated-scroll">
+        {queued.length === 0 ? (
+          <p className="hint">
+            Tomes thou hast chosen from the Oracle shall gather here, awaiting their turn...
+          </p>
+        ) : (
+          <>
+            <p className="hint">
+              The threads of fate thou hast already chosen...
+            </p>
 
-            {queued.map(book => (
+            <ul className="fated-list fated-scroll">
 
-              <li key={book.id} className="fated-item">
+              {queued.map(book => (
 
-                {/* NEW: cover thumbnail sits to the left of title/author */}
-                <div className="fated-item-info">
-                  <BookMiniCover book={book} />
-                  <div>
-                    <p className="fated-item-title">{book.title}</p>
-                    <p className="fated-item-author">{book.author}</p>
+                <li key={book.id} className="fated-item">
+
+                  <div className="fated-item-info">
+                    <BookMiniCover book={book} />
+                    <div>
+                      <p className="fated-item-title">{book.title}</p>
+                      <p className="fated-item-author">{book.author}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="fated-item-actions">
+                  <div className="fated-item-actions">
 
-                  <button
-                    type="button"
-                    className="fated-icon-btn"
-                    title="Finished this tome!"
-                    onClick={() => updateStatus(book.id, 'finish', book.title)}
-                  >
-                    👑
-                  </button>
+                    <button
+                      type="button"
+                      className="fated-icon-btn"
+                      title="Finished this tome!"
+                      onClick={() => updateStatus(book.id, 'finish', book.title)}
+                    >
+                      ✅
+                    </button>
 
-                  <button
-                    type="button"
-                    className="fated-icon-btn"
-                    title="Remove from Fated Reads"
-                    onClick={() => updateStatus(book.id, 'unqueue', book.title)}
-                  >
-                    🕊️
-                  </button>
+                    <button
+                      type="button"
+                      className="fated-icon-btn"
+                      title="Remove from Fated Reads"
+                      onClick={() => updateStatus(book.id, 'unqueue', book.title)}
+                    >
+                      💔
+                    </button>
 
-                </div>
+                  </div>
 
-              </li>
+                </li>
 
-            ))}
+              ))}
 
-          </ul>
-        </>
-      )}
+            </ul>
+          </>
+        )}
 
-    </div>
+      </div>
+    </>
   );
 }
