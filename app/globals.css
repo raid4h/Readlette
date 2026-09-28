@@ -2312,3 +2312,50 @@ gap:8px;
     font-size:.82rem;
   }
 }
+
+/* ============================================================================
+   Currently Reading - "reading several books at once" layout
+   (paste at the END of globals.css so it overrides the earlier rules)
+============================================================================ */
+
+/* The "Two tomes at once" pill under the subtitle */
+.currently-reading-count{
+  display:block;
+  width:fit-content;
+  margin:6px auto 22px;
+  padding:8px 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg, #ffd9ec, #e8cbff);
+  color:var(--ink);
+  font-weight:700;
+  font-size:.85rem;
+}
+
+/* With 2+ books: switch from a stacked column to side-by-side cards.
+   flex-wrap means they stack again on narrow phone screens. */
+.currently-reading-list.is-multiple{
+  flex-direction:row;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:flex-start;
+  gap:24px;
+}
+
+/* Each book becomes its own little card when there are several */
+.currently-reading-list.is-multiple .currently-reading-item{
+  flex:1 1 200px;
+  max-width:260px;
+  padding:18px 14px;
+  border-radius:var(--radius-md);
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(215,185,255,.3);
+}
+
+/* "TOME I" / "TOME II" label, styled like the tarot numerals */
+.currently-reading-numeral{
+  margin:0 0 10px;
+  font-family:var(--font-display);
+  color:var(--gold-dark);
+  font-size:.8rem;
+  letter-spacing:3px;
+}

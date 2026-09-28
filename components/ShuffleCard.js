@@ -26,7 +26,7 @@ import {
   decreeTitles,
   deliberationSequence,
 } from "../lib/royalDecrees";
-import { getCoverUrl } from '../lib/covers';
+import BookCover from './BookCover';
 
 const SPARKLE_GLYPHS = ['✦', '✧', '❀', '✦', '⋆', '✿', '♡', '☾'];
 const TAROT_NUMERALS = ['I', 'II', 'III'];
@@ -222,11 +222,6 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
     onStatusChange?.();
   }
 
-  // Restored: this builds the cover from ISBN via Open Library, same as
-  // everywhere else in the app - NOT pickedBook.cover_url, which is
-  // always null.
-  const coverSrc = pickedBook ? getCoverUrl(pickedBook, 'L') : null;
-
   return (
 
     <div className="card shuffle-card">
@@ -316,18 +311,14 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
             </p>
           )}
 
-          {/* FIXED: was pickedBook.cover_url (always null in the DB).
-              Now uses coverSrc, built from ISBN via Open Library, same
-              as the tarot spread and every list view. Hides gracefully
-              on 404 instead of showing a broken-image icon. */}
-          {coverSrc && (
-            <img
-              className="book-cover"
-              src={coverSrc}
-              alt={pickedBook.title}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
+          {/* Tries Open Library, then Google Books, then shows nothing */}
+          <BookCover
+            key={pickedBook.id}
+            book={pickedBook}
+            size="L"
+            className="book-cover"
+            alt={pickedBook.title}
+          />
 
           <p className="book-title">
             {pickedBook.title}
@@ -403,20 +394,18 @@ export default function ShuffleCard({ filteredBooks, onStatusChange }) {
 
           <div className="tarot-spread">
             {threeFates.map((book, i) => {
-              const cover = getCoverUrl(book, 'M');
               return (
                 <div key={book.id} className="tarot-card">
 
                   <p className="tarot-card-numeral">{TAROT_NUMERALS[i]}</p>
 
-                  {cover && (
-                    <img
-                      className="tarot-card-cover"
-                      src={cover}
-                      alt={book.title}
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                  )}
+                  <BookCover
+                    key={book.id}
+                    book={book}
+                    size="M"
+                    className="tarot-card-cover"
+                    alt={book.title}
+                  />
 
                   <p className="tarot-card-title">{book.title}</p>
                   <p className="tarot-card-author">by {book.author}</p>
