@@ -36,7 +36,9 @@ export async function POST(request) {
   } else if (action === 'unqueue') {
     await sql`UPDATE books SET queued_at = NULL WHERE id = ${id}`;
   } else if (action === 'finish') {
-    await sql`UPDATE books SET shelf = 'read', queued_at = NULL WHERE id = ${id}`;
+    // Also stamps today's date as "date read" (only if there isn't one
+    // already), so books finished in-app show up in Tomes Read with a date.
+    await sql`UPDATE books SET shelf = 'read', queued_at = NULL, date_read = COALESCE(date_read, CURRENT_DATE) WHERE id = ${id}`;
   } else if (action === 'kobo') {
     await sql`UPDATE books SET kobo_at = NOW() WHERE id = ${id}`;
   } else if (action === 'unkobo') {

@@ -29,6 +29,7 @@ import AboutFooter from '../components/AboutFooter';
 import TabNav from '../components/TabNav';
 import { parseSeriesInfo } from '../lib/seriesUtils';
 import { getPageLengthLabel } from '../lib/pageLength';
+import ReadList from '../components/ReadList';
 
 const EMPTY_FILTERS = {
   genres: new Set(),
@@ -44,6 +45,7 @@ const TABS = [
   { id: 'oracle', label: '🔮 The Oracle' },
   { id: 'fated', label: '🎀 Fated Reads' },
   { id: 'kobo', label: '📱 Kobo Shelf' },
+  { id: 'read', label: '📖 Tomes Read' },
   { id: 'library', label: '📜 Thy Library' },
 ];
 
@@ -185,6 +187,8 @@ export default function Home() {
             {activeTab === 'kobo' && (
               <KoboList books={books} onStatusChange={loadBooks} />
             )}
+
+            {activeTab === 'read' && <ReadList />}            
 
             {activeTab === 'library' && (
               <>

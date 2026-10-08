@@ -2359,3 +2359,55 @@ gap:8px;
   font-size:.8rem;
   letter-spacing:3px;
 }
+
+/* ============================================================================
+   Tomes Read tab (rating + date per book)
+   Cover and title layout reuses .fated-item-info; the list scroll reuses
+   .fated-scroll. Sort chips reuse .chip / .chip-row.
+============================================================================ */
+
+.read-list{
+  list-style:none;
+  margin:16px 0 0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.read-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap; /* on a narrow phone, the rating drops under the title */
+  gap:12px;
+  padding:12px 16px;
+  border-radius:var(--radius-md);
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(215,185,255,.3);
+}
+
+.read-item-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+  flex-shrink:0;
+}
+
+.read-stars{
+  color:var(--gold-dark);
+  letter-spacing:2px;
+  font-size:.95rem;
+}
+
+.read-unrated{
+  color:var(--ink-light);
+  font-size:.78rem;
+  font-style:italic;
+}
+
+.read-date{
+  color:var(--ink-light);
+  font-size:.75rem;
+}
